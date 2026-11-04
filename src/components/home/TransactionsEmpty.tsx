@@ -1,0 +1,52 @@
+import Image from "next/image";
+import { Button } from "@/components/ui/Button";
+
+export function TransactionsEmpty() {
+  return (
+    <section className="flex flex-1 flex-col gap-5 p-7">
+      <h2 className="font-display text-h4 font-semibold text-white">Transactions</h2>
+
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex w-[358px] max-w-full flex-col items-center gap-4">
+          <div className="flex w-full flex-col items-center gap-2.5">
+            <span aria-hidden className="flex size-10 items-center justify-center rounded-full bg-neutral-400">
+              <span className="flex size-[30.402px] items-center justify-center">
+                {/* Figma has this icon flipped vertically and turned -20.44° */}
+                <span className="-scale-y-100 rotate-[-20.44deg]">
+                  <Image
+                    src="/assets/icon-empty-transactions.svg"
+                    alt=""
+                    width={23.6364}
+                    height={23.6364}
+                    className="size-[23.636px] max-w-none"
+                  />
+                </span>
+              </span>
+            </span>
+
+            <div className="flex w-full flex-col items-center gap-1 text-center">
+              <p className="text-p1 font-semibold text-neutral-100">No transactions yet</p>
+              <p className="text-p2 text-neutral-200">Transactions will be shown here</p>
+            </div>
+          </div>
+
+          <Button
+            icon={
+              <span className="relative size-[17px] shrink-0">
+                <Image
+                  src="/assets/icon-plus.svg"
+                  alt=""
+                  width={12.8333}
+                  height={12.8333}
+                  className="absolute top-[2.08px] left-[2.26px] size-[12.833px] max-w-none"
+                />
+              </span>
+            }
+          >
+            Top up your wallet
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
