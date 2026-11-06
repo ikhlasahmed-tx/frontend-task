@@ -3,7 +3,7 @@
 
 export type Wallet = {
   name: string;
-  address: string; // already shortened for display
+  address: string;
   avatarInitial: string;
   balanceUsd: number;
 };
@@ -12,7 +12,7 @@ export type SetupStep = {
   id: string;
   title: string;
   description: string;
-  actionLabel: string; // button text when this is the current step
+  actionLabel: string;
   done: boolean;
 };
 

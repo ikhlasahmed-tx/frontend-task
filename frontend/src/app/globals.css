@@ -9,12 +9,14 @@
 
   --color-primary: #40e0d0; /* Primary/Main */
   --color-primary-shade-1: #0a8579; /* Primary/Shade 1 */
+  --color-primary-shade-2: #143536; /* Primary/Shade 2 */
   --color-primary-shade-3: #132123; /* Primary/Shade 3 */
   --color-neutral-100: #b3b5b6; /* Neutral/100 */
   --color-neutral-200: #636466; /* Neutral/200 */
   --color-neutral-400: #2b2d30; /* Neutral/400 */
   --color-neutral-500: #131519; /* Neutral/500 */
   --color-neutral-600: #090a11; /* Neutral/600 */
+  --color-danger: #ff5c5c; /* form errors – not in Figma, confirm with designer */
 
   /* P1: Inter 16px / 1.4, -0.3px tracking */
   --text-p1: 16px;
