@@ -6,11 +6,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variants = {
-  white: "bg-white hover:bg-neutral-100", // "Verify identity", "Top up your wallet"
-  primary: "bg-primary hover:brightness-110", // onboarding "Continue"
+  white: "bg-white hover:bg-neutral-100",
+  primary: "bg-primary hover:brightness-110",
 };
 
-// Pill button from the design.
 export function Button({
   icon,
   variant = "white",

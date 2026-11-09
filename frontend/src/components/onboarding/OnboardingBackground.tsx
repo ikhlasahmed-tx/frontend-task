@@ -1,8 +1,5 @@
 import Image from "next/image";
 
-// Soft teal glow behind the onboarding screens (Figma "Background" + "Rectangle 1").
-// Figma frame is 1440×1024; the shapes sit slightly left of and below the center,
-// so they're positioned from the center of the screen to stay in the same spot at any size.
 export function OnboardingBackground() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">

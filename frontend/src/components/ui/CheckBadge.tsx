@@ -1,6 +1,5 @@
 import Image from "next/image";
 
-// Teal circle with a check mark, used for completed steps.
 export function CheckBadge() {
   return (
     <span aria-hidden className="flex size-6 shrink-0 items-center justify-center">

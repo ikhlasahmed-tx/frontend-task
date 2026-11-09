@@ -13,6 +13,7 @@ type CodeInputProps = {
   disabled?: boolean;
   autoFocus?: boolean;
   autoComplete?: string; // "one-time-code" lets phones auto-fill codes from SMS/email
+  mask?: boolean; // show dots instead of digits (passcode)
 };
 
 // A row of single-digit boxes (OTP and passcode screens).
@@ -25,6 +26,7 @@ export function CodeInput({
   disabled = false,
   autoFocus = false,
   autoComplete = "off",
+  mask = false,
 }: CodeInputProps) {
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   // Newest value right away; the `value` prop only updates on the next render, too late for handleFocus.
@@ -53,7 +55,8 @@ export function CodeInput({
     // Only the new digits: the box's old digit was selected, so it got replaced. Extra digits fill the next boxes.
     const digits = event.target.value.replace(/\D/g, "");
     if (!digits) return;
-    setValue(value.slice(0, index) + digits + value.slice(index + digits.length));
+    // A full code (paste, auto-fill) replaces everything, whichever box has the cursor.
+    setValue(digits.length === LENGTH ? digits : value.slice(0, index) + digits + value.slice(index + digits.length));
     focusBox(index + digits.length);
   }
 
@@ -90,6 +93,7 @@ export function CodeInput({
           ref={(element) => {
             boxes.current[index] = element;
           }}
+          type={mask ? "password" : "text"}
           value={value[index] ?? ""}
           onChange={(event) => handleChange(index, event)}
           onKeyDown={(event) => handleKeyDown(index, event)}

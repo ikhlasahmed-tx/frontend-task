@@ -1,7 +1,5 @@
 import Image from "next/image";
 
-// "English (EN)" picker at the top of the onboarding screens.
-// Only English exists for now, so the menu isn't built yet.
 export function LanguageSelector() {
   return (
     <button

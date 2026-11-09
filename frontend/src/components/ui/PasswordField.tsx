@@ -6,7 +6,6 @@ import { TextField, type TextFieldProps } from "@/components/ui/TextField";
 
 type PasswordFieldProps = Omit<TextFieldProps, "icon" | "trailing" | "type">;
 
-// TextField with a lock icon and an eye button that shows/hides the password.
 export function PasswordField(props: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
 

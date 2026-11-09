@@ -13,7 +13,7 @@ type CountrySelectProps = {
 export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0); // row highlighted by the arrow keys
+  const [activeIndex, setActiveIndex] = useState(0); 
 
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -57,7 +57,7 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
       setOpen(false);
       buttonRef.current?.focus();
     } else if (event.key === "Tab") setOpen(false);
-    else return; // let other keys behave normally
+    else return; 
     if (event.key !== "Tab") event.preventDefault();
   }
 

@@ -17,11 +17,9 @@ export function SignUpForm() {
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
-  // One change handler for every field: the input's `name` says which value to update.
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const next = { ...values, [event.target.name]: event.target.value };
     setValues(next);
-    // After the first submit, re-check as the user types so errors clear when fixed.
     if (submitted) setErrors(validateSignUp(next));
   }
 

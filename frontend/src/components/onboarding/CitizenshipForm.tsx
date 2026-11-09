@@ -2,17 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, type SubmitEvent } from "react";
+import type { SubmitEvent } from "react";
 import { CountrySelect } from "@/components/onboarding/CountrySelect";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 export function CitizenshipForm() {
   const router = useRouter();
-  const { data, ready, update } = useOnboarding();
-
-  useEffect(() => {
-    if (ready && !data.email) router.replace("/signup");
-  }, [ready, data.email, router]);
+  const { data, update } = useOnboarding();
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();

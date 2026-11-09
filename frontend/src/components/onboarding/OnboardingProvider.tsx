@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 
 export type OnboardingData = {
   email: string;
@@ -9,11 +10,19 @@ export type OnboardingData = {
 
 type OnboardingContextValue = {
   data: OnboardingData;
-  ready: boolean; 
   update: (patch: Partial<OnboardingData>) => void;
 };
 
 const EMPTY: OnboardingData = { email: "", citizenship: "" };
+
+// What each page needs from earlier steps, and where to send the user when it's missing (checked in order).
+const REQUIRED: Record<string, (keyof OnboardingData)[]> = {
+  "/verify-email": ["email"],
+  "/citizenship": ["email"],
+  "/creating-wallet": ["email", "citizenship"],
+  "/passcode": ["email", "citizenship"],
+};
+const STEP_FOR: Record<keyof OnboardingData, string> = { email: "/signup", citizenship: "/citizenship" };
 const STORAGE_KEY = "swarppay.onboarding";
 
 const listeners = new Set<() => void>();
@@ -61,7 +70,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     [data],
   );
 
-  const value = useMemo(() => ({ data, ready: saved !== undefined, update }), [data, saved, update]);
+  // Send users back to the first earlier step they haven't done (only once saved data has been read).
+  const pathname = usePathname();
+  const router = useRouter();
+  useEffect(() => {
+    if (saved === undefined) return;
+    const missing = REQUIRED[pathname]?.find((field) => !data[field]);
+    if (missing) router.replace(STEP_FOR[missing]);
+  }, [saved, data, pathname, router]);
+
+  const value = useMemo(() => ({ data, update }), [data, update]);
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }

@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { CodeInput } from "@/components/ui/CodeInput";
 
 const RESEND_COOLDOWN_SECONDS = 30;
@@ -11,16 +10,11 @@ type Status = "idle" | "verifying" | "error";
 
 export function OtpForm() {
   const router = useRouter();
-  const { data, ready } = useOnboarding();
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [attempt, setAttempt] = useState(0); 
   const [cooldown, setCooldown] = useState(0); 
   const [resent, setResent] = useState(false);
-
-  useEffect(() => {
-    if (ready && !data.email) router.replace("/signup");
-  }, [ready, data.email, router]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
