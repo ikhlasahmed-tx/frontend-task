@@ -32,7 +32,7 @@ export function SignUpForm() {
     if (Object.keys(nextErrors).length > 0) return;
 
     // TODO (backend): POST /api/auth/register with `values`
-    updateOnboarding({ email: values.email.trim() }); // the OTP screen shows this email
+    updateOnboarding({ email: values.email.trim() });
     router.push("/verify-email");
   }
 

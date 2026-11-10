@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 
 export type OnboardingData = {
   email: string;
@@ -11,6 +11,8 @@ export type OnboardingData = {
 type OnboardingContextValue = {
   data: OnboardingData;
   update: (patch: Partial<OnboardingData>) => void;
+  passcode: string; // from Set a passcode, for Confirm to compare; "" until set
+  setPasscode: (passcode: string) => void;
 };
 
 const EMPTY: OnboardingData = { email: "", citizenship: "" };
@@ -21,6 +23,7 @@ const REQUIRED: Record<string, (keyof OnboardingData)[]> = {
   "/citizenship": ["email"],
   "/creating-wallet": ["email", "citizenship"],
   "/passcode": ["email", "citizenship"],
+  "/confirm-passcode": ["email", "citizenship"],
 };
 const STEP_FOR: Record<keyof OnboardingData, string> = { email: "/signup", citizenship: "/citizenship" };
 const STORAGE_KEY = "swarppay.onboarding";
@@ -43,10 +46,23 @@ function readSaved(): string | null {
 
 const readOnServer = () => undefined;
 
+// End of onboarding: forget the saved email/citizenship. Deliberately doesn't notify listeners,
+// so the redirect check below can't fire before the caller leaves the page.
+export function clearOnboardingData() {
+  memory = null;
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // storage blocked: `memory` was the only copy
+  }
+}
+
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const saved = useSyncExternalStore(subscribe, readSaved, readOnServer);
+  // React state only, never saved: sessionStorage can be read by any script, and a refresh should drop it.
+  const [passcode, setPasscode] = useState("");
 
   const data = useMemo<OnboardingData>(() => {
     if (!saved) return EMPTY;
@@ -77,9 +93,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     if (saved === undefined) return;
     const missing = REQUIRED[pathname]?.find((field) => !data[field]);
     if (missing) router.replace(STEP_FOR[missing]);
-  }, [saved, data, pathname, router]);
+    else if (pathname === "/confirm-passcode" && !passcode) router.replace("/passcode"); // e.g. after a refresh
+  }, [saved, data, passcode, pathname, router]);
 
-  const value = useMemo(() => ({ data, update }), [data, update]);
+  const value = useMemo(() => ({ data, update, passcode, setPasscode }), [data, update, passcode]);
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }
