@@ -1,10 +1,13 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { getT } from "@/i18n/server";
 
-export function TransactionsEmpty() {
+export async function TransactionsEmpty() {
+  const t = await getT();
+
   return (
     <section className="flex flex-1 flex-col gap-5 p-7">
-      <h2 className="font-display text-h4 font-semibold text-white">Transactions</h2>
+      <h2 className="font-display text-h4 font-semibold text-white">{t("home.transactions.title")}</h2>
 
       <div className="flex flex-1 items-center justify-center">
         <div className="flex w-[358px] max-w-full flex-col items-center gap-4">
@@ -25,8 +28,8 @@ export function TransactionsEmpty() {
             </span>
 
             <div className="flex w-full flex-col items-center gap-1 text-center">
-              <p className="text-p1 font-semibold text-neutral-100">No transactions yet</p>
-              <p className="text-p2 text-neutral-200">Transactions will be shown here</p>
+              <p className="text-p1 font-semibold text-neutral-100">{t("home.transactions.empty")}</p>
+              <p className="text-p2 text-neutral-200">{t("home.transactions.emptyHint")}</p>
             </div>
           </div>
 
@@ -43,7 +46,7 @@ export function TransactionsEmpty() {
               </span>
             }
           >
-            Top up your wallet
+            {t("home.transactions.topUp")}
           </Button>
         </div>
       </div>

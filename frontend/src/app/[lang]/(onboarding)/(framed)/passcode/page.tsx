@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { PasscodeForm } from "@/components/onboarding/PasscodeForm";
 import { StepHeader } from "@/components/onboarding/StepHeader";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Set a passcode · SwarpPay",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("meta.passcode") };
+}
 
-export default function PasscodePage() {
+export default async function PasscodePage() {
+  const t = await getT();
+
   return (
     <div className="flex flex-col items-center gap-7">
       <StepHeader
@@ -23,8 +27,8 @@ export default function PasscodePage() {
             />
           </span>
         }
-        title="Set a passcode"
-        subtitle="This 6-digit passcode keeps your wallet and payments secure."
+        title={t("passcode.title")}
+        subtitle={t("passcode.subtitle")}
       />
       <PasscodeForm />
     </div>

@@ -1,0 +1,172 @@
+{
+  "meta": {
+    "appTitle": "SwarpPay",
+    "appDescription": "SwarpPay wallet",
+    "signup": "Sign up · SwarpPay",
+    "login": "Log in · SwarpPay",
+    "verifyEmail": "Verify your email · SwarpPay",
+    "citizenship": "Citizenship · SwarpPay",
+    "creatingWallet": "Creating wallet · SwarpPay",
+    "passcode": "Set a passcode · SwarpPay",
+    "confirmPasscode": "Confirm passcode · SwarpPay"
+  },
+  "common": {
+    "somethingWrong": "Something went wrong. Try again.",
+    "offline": "Can’t reach the server. Check your connection and try again.",
+    "tryAgain": "Try again",
+    "continue": "Continue"
+  },
+  "fields": {
+    "fullName": "Full name",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "codeDigit": "{{label}}, digit {{position}} of {{total}}"
+  },
+  "signup": {
+    "title": "Welcome to Swarp Pay",
+    "subtitle": "Send and receive money in fiat or crypto.<br/>Fast. Secure. Borderless.",
+    "haveAccount": "Already have an account? <login>Log in</login>",
+    "referral": "Have a referral code?"
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Log in to your Swarp Pay account.",
+    "submit": "Log in",
+    "wrongCredentials": "Email or password is incorrect",
+    "noAccount": "Don't have an account? <signup>Sign up</signup>"
+  },
+  "verifyEmail": {
+    "title": "Verification code",
+    "subtitle": "Enter the 6-digit code that was sent to your email",
+    "codeLabel": "Verification code",
+    "wrongCode": "That code isn’t right. Try again.",
+    "verifying": "Verifying…",
+    "resent": "We sent a new code to your email.",
+    "noCode": "Didn’t receive a code?",
+    "resend": "Resend code",
+    "resendIn": "Resend code in {{seconds}}s"
+  },
+  "citizenship": {
+    "title": "Select your citizenship",
+    "subtitle": "Swarp Pay is required to collect this info. If you're<br/>a dual citizen, please select one country.",
+    "fieldLabel": "Country of citizenship",
+    "placeholder": "Select your country",
+    "saveFailed": "Couldn’t save your country. Try again."
+  },
+  "creatingWallet": {
+    "title": "Creating wallet...",
+    "subtitle": "Setting up your swarp pay wallet. This will not take long.",
+    "failed": "Couldn’t create your wallet."
+  },
+  "passcode": {
+    "title": "Set a passcode",
+    "subtitle": "This 6-digit passcode keeps your wallet and payments secure.",
+    "label": "Passcode"
+  },
+  "confirmPasscode": {
+    "title": "Confirm passcode",
+    "label": "Confirm passcode",
+    "mismatch": "Passcodes don’t match. Try again.",
+    "saveFailed": "Couldn’t save your passcode. Try again."
+  },
+  "terms": {
+    "notice": "You acknowledge that you read, and agree to <terms>SwarpPay’s Terms</terms> and <privacy>Privacy Policy</privacy>."
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Home",
+    "wallet": "Wallet",
+    "transactions": "Transactions",
+    "rewards": "Rewards",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "home": {
+    "title": "Home",
+    "search": "Search",
+    "scanQr": "Scan QR code",
+    "notifications": "Notifications",
+    "progress": {
+      "label": "Account setup progress",
+      "almostThere": "You’re almost there",
+      "stepsCompleted": "Setup steps completed"
+    },
+    "remaining": {
+      "title": "Remaining steps",
+      "intro": "You’re close to finishing your account setup. Next up, {{step}}.",
+      "completed": " (completed)",
+      "why": "Why is this important?",
+      "learnMore": "Learn more"
+    },
+    "wallet": {
+      "label": "Wallet summary",
+      "usernamePrompt": "Create your @username: A unique identity for your wallet.",
+      "dismiss": "Dismiss",
+      "estimatedBalance": "Estimated balance"
+    },
+    "quickActions": {
+      "label": "Quick actions",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "topUp": "Top up",
+      "withdraw": "Withdraw"
+    },
+    "performance": {
+      "title": "Wallet performance",
+      "value": "{{name}} ({{symbol}}) value",
+      "changeToken": "Selected token: {{symbol}}. Change token",
+      "chart": "{{symbol}} price chart",
+      "timeRange": "Time range",
+      "ranges": {
+        "1H": "1H",
+        "1D": "1D",
+        "1W": "1W",
+        "1M": "1M",
+        "1Y": "1Y",
+        "ALL": "ALL"
+      }
+    },
+    "transactions": {
+      "title": "Transactions",
+      "empty": "No transactions yet",
+      "emptyHint": "Transactions will be shown here",
+      "topUp": "Top up your wallet"
+    },
+    "steps": {
+      "account": {
+        "title": "Account created"
+      },
+      "identity": {
+        "title": "Verify your identity",
+        "description": "To unlock fiat deposits, higher limits & rewards, verify your identity in 2 minutes.",
+        "action": "Verify identity"
+      },
+      "top-up": {
+        "title": "Top up your wallet",
+        "description": "Top your wallet with Fiat or by depositing Crypto.",
+        "action": "Top up wallet"
+      },
+      "swap": {
+        "title": "Swap your first fiat / crypto",
+        "description": "Jump start your fiat / crypto portfolio.",
+        "action": "Swap now"
+      }
+    }
+  },
+  "validation": {
+    "fullName": "Enter your full name",
+    "email": "Enter a valid email address",
+    "emailTaken": "An account with this email already exists",
+    "passwordShort": "Use at least {{min}} characters",
+    "passwordTooLong": "Password is too long",
+    "passwordMismatch": "Passwords don’t match",
+    "passwordRequired": "Enter your password"
+  },
+  "language": {
+    "label": "Language"
+  }
+}

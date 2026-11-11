@@ -2,16 +2,18 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Wallet } from "@/lib/data";
-
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 export function WalletSummary({ wallet }: { wallet: Wallet }) {
   const [showUsernameBanner, setShowUsernameBanner] = useState(true);
+  const { t, i18n } = useTranslation();
+  // "$1,250.75" in English, "1 250,75 $" in Russian.
+  const usd = new Intl.NumberFormat(i18n.language, { style: "currency", currency: "USD" });
 
   return (
     <section
-      aria-label="Wallet summary"
+      aria-label={t("home.wallet.label")}
       className="flex flex-col justify-center gap-6 border-b-[0.2px] border-neutral-400 py-7 pr-8 pl-7"
     >
       {/* Wallet name and address */}
@@ -34,12 +36,12 @@ export function WalletSummary({ wallet }: { wallet: Wallet }) {
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <UsernameBadge />
             <p className="min-w-0 flex-1 text-p2 text-neutral-100">
-              Create your @username: A unique identity for your wallet.
+              {t("home.wallet.usernamePrompt")}
             </p>
           </div>
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label={t("home.wallet.dismiss")}
             onClick={() => setShowUsernameBanner(false)}
             className="flex size-5 shrink-0 items-center justify-center rounded-full bg-neutral-400 transition-colors hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
@@ -51,7 +53,7 @@ export function WalletSummary({ wallet }: { wallet: Wallet }) {
       {/* Balance */}
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-1">
-          <p className="text-p2 text-neutral-200">Estimated balance</p>
+          <p className="text-p2 text-neutral-200">{t("home.wallet.estimatedBalance")}</p>
           <Image src="/assets/icon-info.svg" alt="" width={14} height={14} className="size-3.5" />
         </div>
         <p className="font-display text-[48px] leading-[1.3] font-semibold text-white">

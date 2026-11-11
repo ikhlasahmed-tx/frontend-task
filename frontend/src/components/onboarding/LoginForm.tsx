@@ -2,13 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
-import { validateLogin, type LoginErrors, type LoginValues } from "@/lib/validation";
+import { useLocalePath } from "@/i18n/useLocalePath";
+import {
+  MIN_PASSWORD_LENGTH,
+  validateLogin,
+  type LoginErrors,
+  type ValidationMessage,
+  type LoginValues,
+} from "@/lib/validation";
 
 export function LoginForm() {
   const router = useRouter();
+  const path = useLocalePath();
+  const { t } = useTranslation();
+  const message = (key?: ValidationMessage) => key && t(`validation.${key}`, { min: MIN_PASSWORD_LENGTH });
   const [values, setValues] = useState<LoginValues>({ email: "", password: "" });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -39,12 +50,12 @@ export function LoginForm() {
       });
       if (res.ok) {
         // Stays pending while the next page loads, so the button can't be pressed twice.
-        router.push("/");
+        router.push(path("/"));
         return;
       }
-      setFormError(res.status === 401 ? "Email or password is incorrect" : "Something went wrong. Try again.");
+      setFormError(res.status === 401 ? t("login.wrongCredentials") : t("common.somethingWrong"));
     } catch {
-      setFormError("Can't reach the server. Check your connection and try again.");
+      setFormError(t("common.offline"));
     }
     setPending(false);
   }
@@ -54,20 +65,20 @@ export function LoginForm() {
       <TextField
         name="email"
         type="email"
-        label="Email address"
+        label={t("fields.email")}
         icon="/assets/onboarding/icon-email.svg"
         autoComplete="email"
         value={values.email}
         onChange={handleChange}
-        error={errors.email}
+        error={message(errors.email)}
       />
       <PasswordField
         name="password"
-        label="Password"
+        label={t("fields.password")}
         autoComplete="current-password"
         value={values.password}
         onChange={handleChange}
-        error={errors.password}
+        error={message(errors.password)}
       />
       {formError && (
         <p role="alert" className="text-caption text-danger">
@@ -75,7 +86,7 @@ export function LoginForm() {
         </p>
       )}
       <Button type="submit" variant="primary" className="h-12 w-full" disabled={pending}>
-        Log in
+        {t("login.submit")}
       </Button>
     </form>
   );

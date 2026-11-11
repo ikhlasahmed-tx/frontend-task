@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CitizenshipForm } from "@/components/onboarding/CitizenshipForm";
+import { Trans } from "react-i18next";
 import { StepHeader } from "@/components/onboarding/StepHeader";
+import { getT, i18n } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Citizenship · SwarpPay",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("meta.citizenship") };
+}
 
-export default function CitizenshipPage() {
+export default async function CitizenshipPage() {
+  const t = await getT();
+
   return (
     <div className="flex flex-col items-center gap-7">
       <StepHeader
@@ -23,13 +28,8 @@ export default function CitizenshipPage() {
             />
           </span>
         }
-        title="Select your citizenship"
-        subtitle={
-          <>
-            Swarp Pay is required to collect this info. If you&apos;re
-            <br />a dual citizen, please select one country.
-          </>
-        }
+        title={t("citizenship.title")}
+        subtitle={<Trans i18n={i18n} t={t} i18nKey="citizenship.subtitle" />}
       />
       <CitizenshipForm />
     </div>

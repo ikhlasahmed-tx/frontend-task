@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Trans } from "react-i18next";
 import { SignUpForm } from "@/components/onboarding/SignUpForm";
 import { StepHeader } from "@/components/onboarding/StepHeader";
+import { getLocalePath, getT, i18n } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Sign up · SwarpPay",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("meta.signup") };
+}
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
+  const t = await getT();
+  const path = await getLocalePath();
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col justify-center gap-7">
@@ -23,26 +29,26 @@ export default function SignUpPage() {
               priority
             />
           }
-          title="Welcome to Swarp Pay"
-          subtitle={
-            <>
-              Send and receive money in fiat or crypto.
-              <br />
-              Fast. Secure. Borderless.
-            </>
-          }
+          title={t("signup.title")}
+          subtitle={<Trans i18n={i18n} t={t} i18nKey="signup.subtitle" />}
         />
         <SignUpForm />
       </div>
 
       <p className="mt-8 self-center text-p2 text-neutral-100">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="rounded font-medium text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          Log in
-        </Link>
+        <Trans
+          i18n={i18n}
+          t={t}
+          i18nKey="signup.haveAccount"
+          components={{
+            login: (
+              <Link
+                href={path("/login")}
+                className="rounded font-medium text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              />
+            ),
+          }}
+        />
       </p>
 
       {/* Will open ReferralCodeModal once that component is built */}
@@ -50,7 +56,7 @@ export default function SignUpPage() {
         type="button"
         className="mt-3 self-center rounded text-p2 font-medium text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
-        Have a referral code?
+        {t("signup.referral")}
       </button>
     </div>
   );

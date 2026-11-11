@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { TextField, type TextFieldProps } from "@/components/ui/TextField";
 
 type PasswordFieldProps = Omit<TextFieldProps, "icon" | "trailing" | "type">;
 
 export function PasswordField(props: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <TextField
@@ -18,7 +20,7 @@ export function PasswordField(props: PasswordFieldProps) {
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? t("fields.hidePassword") : t("fields.showPassword")}
           aria-pressed={visible}
           className="flex size-5 shrink-0 items-center justify-center rounded opacity-100 transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >

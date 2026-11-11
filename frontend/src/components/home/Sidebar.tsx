@@ -3,10 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "@/components/onboarding/LanguageSelector";
 import { stripLocale } from "@/i18n/config";
+import { useLocalePath } from "@/i18n/useLocalePath";
 
 type NavItem = {
-  label: string;
+  id: "home" | "wallet" | "transactions" | "rewards" | "settings"; // also the text key under nav
   href: string;
   icon: {
     src: string;
@@ -20,40 +23,42 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    label: "Home",
+    id: "home",
     href: "/",
     icon: { src: "/assets/icon-home.svg", width: 22, height: 22, left: 0, top: 0 },
   },
   {
-    label: "Wallet",
+    id: "wallet",
     href: "/wallet",
     icon: { src: "/assets/icon-wallet.svg", width: 18.3333, height: 18.9751, left: 1.833, top: 0.977 },
   },
   {
-    label: "Transactions",
+    id: "transactions",
     href: "/transactions",
     icon: { src: "/assets/icon-transactions.svg", width: 18.5, height: 18.5, left: 1.25, top: 2.25 },
   },
   {
-    label: "Rewards",
+    id: "rewards",
     href: "/rewards",
     icon: { src: "/assets/icon-rewards.svg", width: 22, height: 22, left: 0, top: 0 },
   },
   {
-    label: "Settings",
+    id: "settings",
     href: "/settings",
     icon: { src: "/assets/icon-settings.svg", width: 18.0001, height: 18.7801, left: 2, top: 2 },
   },
 ];
 
-async function logOut() {
+async function logOut(loginPath: string) {
   const res = await fetch("/api/auth/logout", { method: "POST" });
   // Full page load, so nothing of the logged-in session stays in memory, and Back can't return to Home.
-  if (res.ok) window.location.replace("/login");
+  if (res.ok) window.location.replace(loginPath);
 }
 
 export function Sidebar() {
   const pathname = stripLocale(usePathname()); // "/ru" → "/", so the active item still matches
+  const path = useLocalePath();
+  const { t } = useTranslation();
 
   return (
     <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col gap-8 border-r-[0.2px] border-neutral-400 bg-neutral-600 py-7">
@@ -68,13 +73,13 @@ export function Sidebar() {
         />
       </div>
 
-      <nav aria-label="Main" className="flex flex-col gap-2">
-        {navItems.map(({ label, href, icon }) => {
+      <nav aria-label={t("nav.label")} className="flex flex-col gap-2">
+        {navItems.map(({ id, href, icon }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
-              href={href}
+              href={path(href)}
               aria-current={active ? "page" : undefined}
               className={`flex h-11 items-center gap-2 pr-3.5 pl-8 text-p2 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
                 active
@@ -92,19 +97,25 @@ export function Sidebar() {
                   style={{ left: icon.left, top: icon.top, width: icon.width, height: icon.height }}
                 />
               </span>
-              {label}
+              {t(`nav.${id}`)}
             </Link>
           );
         })}
       </nav>
 
-      <button
-        type="button"
-        onClick={logOut}
-        className="mt-auto flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
-      >
-        Log out
-      </button>
+      {/* Not in the Figma design: Home had no language picker. */}
+      <div className="mt-auto flex flex-col gap-2">
+        <div className="flex h-11 items-center pl-8">
+          <LanguageSelector />
+        </div>
+        <button
+          type="button"
+          onClick={() => logOut(path("/login"))}
+          className="flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+        >
+          {t("nav.logout")}
+        </button>
+      </div>
     </aside>
   );
 }

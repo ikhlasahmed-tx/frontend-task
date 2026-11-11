@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ChangeEvent, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 const LENGTH = 6; // OTP and passcode are both 6 digits
 
@@ -28,6 +29,7 @@ export function CodeInput({
   autoComplete = "off",
   mask = false,
 }: CodeInputProps) {
+  const { t } = useTranslation();
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   // Newest value right away; the `value` prop only updates on the next render, too late for handleFocus.
   const latest = useRef(value);
@@ -99,7 +101,7 @@ export function CodeInput({
           onKeyDown={(event) => handleKeyDown(index, event)}
           onFocus={(event) => handleFocus(index, event.currentTarget)}
           onClick={(event) => event.currentTarget.select()}
-          aria-label={`${label}, digit ${index + 1} of ${LENGTH}`}
+          aria-label={t("fields.codeDigit", { label, position: index + 1, total: LENGTH })}
           aria-invalid={error || undefined}
           inputMode="numeric"
           pattern="[0-9]*"

@@ -1,11 +1,17 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+import { localePath } from "@/i18n/config";
 
-const nav = vi.hoisted(() => ({ pathname: "/", replace: vi.fn() }));
+// The tests run as a Russian user: every screen is opened under /ru and every redirect must stay under /ru.
+const nav = vi.hoisted(() => {
+  const replace = vi.fn();
+  return { pathname: "/", replace, router: { replace } };
+});
 vi.mock("next/navigation", () => ({
   usePathname: () => nav.pathname,
-  useRouter: () => ({ replace: nav.replace }),
+  useParams: () => ({ lang: "ru" }),
+  useRouter: () => nav.router,
 }));
 
 afterEach(() => {
@@ -33,7 +39,6 @@ const cases: [string, { status: number; body: unknown }, string, string | null][
   ["wallet made: earlier screens stay open", me("PK", true), "/citizenship", null],
   ["confirm without a typed passcode (refresh)", me("PK", true), "/confirm-passcode", "/passcode"],
   ["onboarding finished", me("PK", true, true), "/citizenship", "/"],
-  ["a language in the URL doesn't switch the check off", me(null, false), "/ru/passcode", "/citizenship"],
 ];
 
 test.each(cases)("%s", async (_name, answer, pathname, expected) => {
@@ -43,12 +48,12 @@ test.each(cases)("%s", async (_name, answer, pathname, expected) => {
     json: async () => answer.body,
   });
   vi.stubGlobal("fetch", fetchMock);
-  nav.pathname = pathname;
+  nav.pathname = localePath("ru", pathname); // e.g. "/ru/citizenship"
 
   render(<OnboardingProvider>{null}</OnboardingProvider>);
 
   await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/me"));
-  if (expected) await waitFor(() => expect(nav.replace).toHaveBeenCalledWith(expected));
+  if (expected) await waitFor(() => expect(nav.replace).toHaveBeenCalledWith(localePath("ru", expected)));
   else {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(nav.replace).not.toHaveBeenCalled();
@@ -58,7 +63,7 @@ test.each(cases)("%s", async (_name, answer, pathname, expected) => {
 test("sign-up and login don't ask the backend", () => {
   const fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
-  nav.pathname = "/signup";
+  nav.pathname = "/ru/signup";
   render(<OnboardingProvider>{null}</OnboardingProvider>);
   expect(fetchMock).not.toHaveBeenCalled();
 });

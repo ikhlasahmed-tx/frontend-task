@@ -3,12 +3,16 @@ import Image from "next/image";
 import { OnboardingEmail } from "@/components/onboarding/OnboardingProvider";
 import { OtpForm } from "@/components/onboarding/OtpForm";
 import { StepHeader } from "@/components/onboarding/StepHeader";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Verify your email · SwarpPay",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("meta.verifyEmail") };
+}
 
-export default function VerifyEmailPage() {
+export default async function VerifyEmailPage() {
+  const t = await getT();
+
   return (
     <div className="flex flex-col items-center gap-7">
       <StepHeader
@@ -22,10 +26,10 @@ export default function VerifyEmailPage() {
             priority
           />
         }
-        title="Verification code"
+        title={t("verifyEmail.title")}
         subtitle={
           <>
-            Enter the 6-digit code that was sent to your email{" "}
+            {t("verifyEmail.subtitle")}{" "}
             <span className="text-white">
               <OnboardingEmail />
             </span>

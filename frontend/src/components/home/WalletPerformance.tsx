@@ -2,20 +2,22 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { TokenPerformance } from "@/lib/data";
 
 const ranges = ["1H", "1D", "1W", "1M", "1Y", "ALL"] as const;
 type Range = (typeof ranges)[number];
 
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-
 export function WalletPerformance({ token }: { token: TokenPerformance }) {
   const [range, setRange] = useState<Range>("1D");
+  const { t, i18n } = useTranslation();
+  const usd = new Intl.NumberFormat(i18n.language, { style: "currency", currency: "USD" });
+  const percent = new Intl.NumberFormat(i18n.language, { style: "percent", maximumFractionDigits: 2 });
   const sign = token.changeUsd >= 0 ? "+" : "-";
 
   return (
     <section className="flex flex-col gap-5 p-7">
-      <h2 className="font-display text-h4 font-semibold text-white">Wallet performance</h2>
+      <h2 className="font-display text-h4 font-semibold text-white">{t("home.performance.title")}</h2>
 
       <div className="flex flex-col gap-5">
         {/* Value, change and token picker */}
@@ -23,14 +25,14 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
           <div className="flex items-start gap-1.5">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <p className="text-p2 text-neutral-200">
-                {token.name} ({token.symbol}) value
+                {t("home.performance.value", { name: token.name, symbol: token.symbol })}
               </p>
               <p className="font-display text-h3 font-semibold text-white">{usd.format(token.valueUsd)}</p>
             </div>
 
             <button
               type="button"
-              aria-label={`Selected token: ${token.symbol}. Change token`}
+              aria-label={t("home.performance.changeToken", { symbol: token.symbol })}
               className="flex shrink-0 items-center gap-1 rounded-full bg-neutral-400 py-1.5 pr-2 pl-1.5 text-caption font-medium text-white transition-colors hover:bg-neutral-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <SolanaIcon />
@@ -41,7 +43,7 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
 
           <p className="text-caption text-primary">
             {sign}
-            {usd.format(Math.abs(token.changeUsd))} ({token.changePercent}%)
+            {usd.format(Math.abs(token.changeUsd))} ({percent.format(token.changePercent / 100)})
           </p>
         </div>
 
@@ -51,7 +53,7 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
             <div className="absolute inset-[-0.49%_-0.13%_0_-0.14%]">
               <Image
                 src="/assets/chart-sol.svg"
-                alt={`${token.symbol} price chart`}
+                alt={t("home.performance.chart", { symbol: token.symbol })}
                 width={551.476}
                 height={176.856}
                 className="block size-full max-w-none"
@@ -59,7 +61,7 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
             </div>
           </div>
 
-          <div role="group" aria-label="Time range" className="flex items-center justify-between px-4">
+          <div role="group" aria-label={t("home.performance.timeRange")} className="flex items-center justify-between px-4">
             {ranges.map((r) => (
               <button
                 key={r}
@@ -70,7 +72,7 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
                   r === range ? "font-semibold text-primary" : "font-normal text-neutral-200 hover:text-neutral-100"
                 }`}
               >
-                {r}
+                {t(`home.performance.ranges.${r}`)}
               </button>
             ))}
           </div>

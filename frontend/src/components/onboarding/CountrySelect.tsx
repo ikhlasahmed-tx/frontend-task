@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { countries, findCountry } from "@/lib/countries";
+import { useTranslation } from "react-i18next";
+import { getCountries } from "@/lib/countries";
 
 type CountrySelectProps = {
   label: string; 
@@ -12,6 +13,8 @@ type CountrySelectProps = {
 
 export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
   const id = useId();
+  const { t, i18n } = useTranslation();
+  const countries = getCountries(i18n.language); // names and order in the page language
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0); 
 
@@ -19,7 +22,7 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const selected = findCountry(value);
+  const selected = countries.find((country) => country.code === value);
 
   function openList() {
     setActiveIndex(Math.max(0, countries.findIndex((country) => country.code === value)));
@@ -81,7 +84,7 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
         }`}
       >
         <span className={`truncate ${selected ? "text-white" : "text-neutral-200"}`}>
-          {selected ? selected.name : "Select your country"}
+          {selected ? selected.name : t("citizenship.placeholder")}
         </span>
         <Image src="/assets/onboarding/icon-chevron-down-16.svg" alt="" width={16} height={16} className="size-4 shrink-0" />
       </button>

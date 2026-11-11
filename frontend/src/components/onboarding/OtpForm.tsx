@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CodeInput } from "@/components/ui/CodeInput";
+import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/i18n/useLocalePath";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -10,6 +12,8 @@ type Status = "idle" | "verifying" | "error";
 
 export function OtpForm() {
   const router = useRouter();
+  const path = useLocalePath();
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [attempt, setAttempt] = useState(0); 
@@ -32,7 +36,7 @@ export function OtpForm() {
     // TODO (backend): POST /api/auth/otp/verify { email, code } → { token, user }
     const valid = await mockVerifyCode(fullCode);
     if (valid) {
-      router.push("/citizenship");
+      router.push(path("/citizenship"));
     } else {
       setStatus("error");
       setCode("");
@@ -53,7 +57,7 @@ export function OtpForm() {
     <div className="flex w-full flex-col items-center gap-6">
       <CodeInput
         key={attempt}
-        label="Verification code"
+        label={t("verifyEmail.codeLabel")}
         value={code}
         onChange={handleChange}
         onComplete={verify}
@@ -64,21 +68,21 @@ export function OtpForm() {
       />
 
       <div aria-live="polite" className="flex flex-col items-center gap-2 text-center">
-        {status === "error" && <p className="text-caption text-danger">That code isn’t right. Try again.</p>}
-        {status === "verifying" && <p className="text-caption text-neutral-200">Verifying…</p>}
+        {status === "error" && <p className="text-caption text-danger">{t("verifyEmail.wrongCode")}</p>}
+        {status === "verifying" && <p className="text-caption text-neutral-200">{t("verifyEmail.verifying")}</p>}
         {resent && status === "idle" && cooldown > 0 && (
-          <p className="text-caption text-neutral-200">We sent a new code to your email.</p>
+          <p className="text-caption text-neutral-200">{t("verifyEmail.resent")}</p>
         )}
 
         <p className="text-p2 text-neutral-200">
-          Didn’t receive a code?{" "}
+          {t("verifyEmail.noCode")}{" "}
           <button
             type="button"
             onClick={resend}
             disabled={cooldown > 0 || status === "verifying"}
             className="rounded text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:text-neutral-200 disabled:no-underline"
           >
-            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+            {cooldown > 0 ? t("verifyEmail.resendIn", { seconds: cooldown }) : t("verifyEmail.resend")}
           </button>
         </p>
       </div>

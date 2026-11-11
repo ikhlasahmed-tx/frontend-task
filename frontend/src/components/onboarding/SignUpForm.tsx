@@ -5,12 +5,23 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
-import { validateSignUp, type SignUpErrors, type SignUpValues } from "@/lib/validation";
+import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/i18n/useLocalePath";
+import {
+  MIN_PASSWORD_LENGTH,
+  validateSignUp,
+  type SignUpErrors,
+  type ValidationMessage,
+  type SignUpValues,
+} from "@/lib/validation";
 
 const emptyValues: SignUpValues = { fullName: "", email: "", password: "", confirmPassword: "" };
 
 export function SignUpForm() {
   const router = useRouter();
+  const path = useLocalePath();
+  const { t } = useTranslation();
+  const message = (key?: ValidationMessage) => key && t(`validation.${key}`, { min: MIN_PASSWORD_LENGTH });
   const [values, setValues] = useState<SignUpValues>(emptyValues);
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -42,19 +53,25 @@ export function SignUpForm() {
       });
       if (res.ok) {
         // Stays pending while the next page loads, so the button can't be pressed twice.
-        router.push("/verify-email");
+        router.push(path("/verify-email"));
         return;
       }
       if (res.status === 400) {
-        // The backend's field names match this form's (fullName, email, password).
-        setErrors((await res.json()).fields ?? {});
+        // Show this form's own (translated) messages for the fields the backend rejected, not its English text.
+        // The form already blocks short passwords, so the backend only rejects one for being over 72 bytes.
+        const fields: Record<string, string> = (await res.json()).fields ?? {};
+        setErrors({
+          ...(fields.fullName && { fullName: "fullName" }),
+          ...(fields.email && { email: "email" }),
+          ...(fields.password && { password: "passwordTooLong" }),
+        });
       } else if (res.status === 409) {
-        setErrors({ email: "An account with this email already exists" });
+        setErrors({ email: "emailTaken" });
       } else {
-        setFormError("Something went wrong. Try again.");
+        setFormError(t("common.somethingWrong"));
       }
     } catch {
-      setFormError("Can't reach the server. Check your connection and try again.");
+      setFormError(t("common.offline"));
     }
     setPending(false);
   }
@@ -63,38 +80,38 @@ export function SignUpForm() {
     <form noValidate onSubmit={handleSubmit} className="flex w-full flex-col gap-3">
       <TextField
         name="fullName"
-        label="Full name"
+        label={t("fields.fullName")}
         icon="/assets/onboarding/icon-person.svg"
         autoComplete="name"
         value={values.fullName}
         onChange={handleChange}
-        error={errors.fullName}
+        error={message(errors.fullName)}
       />
       <TextField
         name="email"
         type="email"
-        label="Email address"
+        label={t("fields.email")}
         icon="/assets/onboarding/icon-email.svg"
         autoComplete="email"
         value={values.email}
         onChange={handleChange}
-        error={errors.email}
+        error={message(errors.email)}
       />
       <PasswordField
         name="password"
-        label="Password"
+        label={t("fields.password")}
         autoComplete="new-password"
         value={values.password}
         onChange={handleChange}
-        error={errors.password}
+        error={message(errors.password)}
       />
       <PasswordField
         name="confirmPassword"
-        label="Confirm password"
+        label={t("fields.confirmPassword")}
         autoComplete="new-password"
         value={values.confirmPassword}
         onChange={handleChange}
-        error={errors.confirmPassword}
+        error={message(errors.confirmPassword)}
       />
       {formError && (
         <p role="alert" className="text-caption text-danger">
@@ -102,7 +119,7 @@ export function SignUpForm() {
         </p>
       )}
       <Button type="submit" variant="primary" className="h-12 w-full" disabled={pending}>
-        Continue
+        {t("common.continue")}
       </Button>
     </form>
   );

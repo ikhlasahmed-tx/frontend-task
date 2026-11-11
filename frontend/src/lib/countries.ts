@@ -1,7 +1,7 @@
 // Countries for the citizenship picker: ISO 3166-1 alpha-2 code + English name, sorted by name.
 // The `code` is what gets saved and sent to the backend; the backend must check it against
 // the same list (or serve this list itself via GET /api/countries later).
-// Names come from the standard Unicode CLDR data (Intl.DisplayNames, "short" style).
+// Names come from the standard Unicode CLDR data (Intl.DisplayNames: full names, short for HK, MO, PS).
 
 export type Country = {
   code: string; // e.g. "PK"
@@ -260,6 +260,22 @@ export const countries: Country[] = [
   { code: "ZW", name: "Zimbabwe" },
 ];
 
-export function findCountry(code: string): Country | undefined {
-  return countries.find((country) => country.code === code);
+const byLocale = new Map<string, Country[]>([["en", countries]]);
+
+// The same countries with names in another language, sorted the way that language sorts
+// ("Пакистан" for PK in Russian). English keeps the list above as it is.
+export function getCountries(locale: string): Country[] {
+  let list = byLocale.get(locale);
+  if (!list) {
+    // Like the English list: full names ("Великобритания", not "Британия"), short ones only for these three.
+    const long = new Intl.DisplayNames([locale], { type: "region" });
+    const short = new Intl.DisplayNames([locale], { type: "region", style: "short" });
+    const shortCodes = new Set(["HK", "MO", "PS"]);
+    const collator = new Intl.Collator(locale);
+    list = countries
+      .map(({ code, name }) => ({ code, name: (shortCodes.has(code) ? short : long).of(code) ?? name }))
+      .sort((a, b) => collator.compare(a.name, b.name));
+    byLocale.set(locale, list);
+  }
+  return list;
 }

@@ -8,43 +8,20 @@ export type Wallet = {
   balanceUsd: number;
 };
 
+// Steps still to do have a title, description and action under home.steps.<id> in the dictionaries;
+// "account" is always done and only has a title.
+export type PendingStepId = "identity" | "top-up" | "swap";
+
 export type SetupStep = {
-  id: string;
-  title: string;
-  description: string;
-  actionLabel: string;
+  id: "account" | PendingStepId;
   done: boolean;
 };
 
 export const setupSteps: SetupStep[] = [
-  {
-    id: "account",
-    title: "Account created",
-    description: "",
-    actionLabel: "",
-    done: true,
-  },
-  {
-    id: "identity",
-    title: "Verify your identity",
-    description: "To unlock fiat deposits, higher limits & rewards, verify your identity in 2 minutes.",
-    actionLabel: "Verify identity",
-    done: false,
-  },
-  {
-    id: "top-up",
-    title: "Top up your wallet",
-    description: "Top your wallet with Fiat or by depositing Crypto.",
-    actionLabel: "Top up wallet",
-    done: false,
-  },
-  {
-    id: "swap",
-    title: "Swap your first fiat / crypto",
-    description: "Jump start your fiat / crypto portfolio.",
-    actionLabel: "Swap now",
-    done: false,
-  },
+  { id: "account", done: true },
+  { id: "identity", done: false },
+  { id: "top-up", done: false },
+  { id: "swap", done: false },
 ];
 
 export type TokenPerformance = {

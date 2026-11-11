@@ -2,13 +2,19 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import { CodeInput } from "@/components/ui/CodeInput";
+import en from "@/i18n/dictionaries/en.json";
+import { I18nProvider } from "@/i18n/I18nProvider";
 
 afterEach(cleanup);
 
 // CodeInput is controlled, so the tests need a parent that holds the value.
 function Harness({ onComplete, mask }: { onComplete?: (code: string) => void; mask?: boolean }) {
   const [value, setValue] = useState("");
-  return <CodeInput label="Code" value={value} onChange={setValue} onComplete={onComplete} mask={mask} />;
+  return (
+    <I18nProvider locale="en" dictionary={en}>
+      <CodeInput label="Code" value={value} onChange={setValue} onComplete={onComplete} mask={mask} />
+    </I18nProvider>
+  );
 }
 
 const box = (n: number) => screen.getByLabelText(`Code, digit ${n} of 6`) as HTMLInputElement;

@@ -8,18 +8,20 @@ import { WalletSummary } from "@/components/home/WalletSummary";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { getLocalePath, getT } from "@/i18n/server";
 import { BACKEND_URL } from "@/lib/backend-url";
 import { setupSteps, solPerformance } from "@/lib/data";
 
 // The logged-in user's wallet from the backend. Sends the user away if there is no session or no wallet yet.
 async function UserWalletSummary() {
+  const path = await getLocalePath();
   const res = await fetch(`${BACKEND_URL}/api/me`, { headers: { Cookie: (await cookies()).toString() } });
-  if (res.status === 401) redirect("/login");
+  if (res.status === 401) redirect(path("/login"));
   if (!res.ok) throw new Error(`GET /api/me failed with ${res.status}`);
 
   const { user, wallet } = await res.json();
-  if (!wallet) redirect(user.citizenship ? "/creating-wallet" : "/citizenship");
-  if (!user.hasPasscode) redirect("/passcode");
+  if (!wallet) redirect(path(user.citizenship ? "/creating-wallet" : "/citizenship"));
+  if (!user.hasPasscode) redirect(path("/passcode"));
 
   return (
     <WalletSummary
@@ -33,11 +35,13 @@ async function UserWalletSummary() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const t = await getT();
+
   // The Sidebar and the <main> wrapper come from (dashboard)/layout.tsx.
   return (
     <>
-      <TopBar title="Home" />
+      <TopBar title={t("home.title")} />
 
       <div className="flex">
         {/* Left column: verification progress, then remaining steps */}

@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { CodeInput } from "@/components/ui/CodeInput";
+import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/i18n/useLocalePath";
 
 export function ConfirmPasscodeForm() {
   const { passcode } = useOnboarding();
+  const path = useLocalePath();
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0); // changing this resets the boxes after a mismatch
@@ -39,16 +43,16 @@ export function ConfirmPasscodeForm() {
       // 409 = a passcode is already saved (e.g. this screen was submitted twice), so onboarding is done too.
       if (res.ok || res.status === 409) {
         // Full page load, not router.replace: it drops the passcode and all onboarding state from memory.
-        window.location.replace("/");
+        window.location.replace(path("/"));
         return;
       }
       if (res.status === 401) {
-        window.location.replace("/login");
+        window.location.replace(path("/login"));
         return;
       }
-      setServerError("Couldn’t save your passcode. Try again.");
+      setServerError(t("confirmPasscode.saveFailed"));
     } catch {
-      setServerError("Can’t reach the server. Check your connection and try again.");
+      setServerError(t("common.offline"));
     }
     setPending(false);
     setValue("");
@@ -59,7 +63,7 @@ export function ConfirmPasscodeForm() {
     <div className="flex w-full flex-col items-center gap-6">
       <CodeInput
         key={attempt}
-        label="Confirm passcode"
+        label={t("confirmPasscode.label")}
         value={value}
         onChange={(next) => {
           setValue(next);
@@ -74,7 +78,7 @@ export function ConfirmPasscodeForm() {
       />
       {error && (
         <p role="alert" className="text-caption text-danger">
-          Passcodes don’t match. Try again.
+          {t("confirmPasscode.mismatch")}
         </p>
       )}
       {serverError && (

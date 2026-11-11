@@ -1,7 +1,9 @@
 import { CheckBadge } from "@/components/ui/CheckBadge";
+import { getT } from "@/i18n/server";
 import type { SetupStep } from "@/lib/data";
 
-export function VerificationProgress({ steps }: { steps: SetupStep[] }) {
+export async function VerificationProgress({ steps }: { steps: SetupStep[] }) {
+  const t = await getT();
   const completed = steps.filter((step) => step.done).length;
   const total = steps.length;
   const nextStep = steps.find((step) => !step.done);
@@ -10,21 +12,21 @@ export function VerificationProgress({ steps }: { steps: SetupStep[] }) {
 
   return (
     <section
-      aria-label="Account setup progress"
+      aria-label={t("home.progress.label")}
       className="flex flex-col gap-4 border-b-[0.2px] border-neutral-400 p-7"
     >
       <div className="flex items-center gap-2.5">
         <CheckBadge />
-        <p className="text-p2 font-medium text-neutral-100">You’re almost there</p>
+        <p className="text-p2 font-medium text-neutral-100">{t("home.progress.almostThere")}</p>
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <h2 className="font-display text-h4 font-semibold text-white">{nextStep.title}</h2>
+        <h2 className="font-display text-h4 font-semibold text-white">{t(`home.steps.${nextStep.id}.title`)}</h2>
 
         <div className="flex items-center gap-3">
           <div
             role="progressbar"
-            aria-label="Setup steps completed"
+            aria-label={t("home.progress.stepsCompleted")}
             aria-valuemin={0}
             aria-valuemax={total}
             aria-valuenow={completed}
