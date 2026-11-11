@@ -1,3 +1,4 @@
 allowBuilds:
   esbuild: false # its install script is not needed: tsx works with the prebuilt binary
   "@scarf/scarf": false # install-time usage tracking pulled in by swagger-ui; not needed to work
+  bcrypt: set this to true or false

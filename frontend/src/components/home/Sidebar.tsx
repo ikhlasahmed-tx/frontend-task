@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { stripLocale } from "@/i18n/config";
 
 type NavItem = {
   label: string;
@@ -45,8 +46,14 @@ const navItems: NavItem[] = [
   },
 ];
 
+async function logOut() {
+  const res = await fetch("/api/auth/logout", { method: "POST" });
+  // Full page load, so nothing of the logged-in session stays in memory, and Back can't return to Home.
+  if (res.ok) window.location.replace("/login");
+}
+
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname = stripLocale(usePathname()); // "/ru" → "/", so the active item still matches
 
   return (
     <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col gap-8 border-r-[0.2px] border-neutral-400 bg-neutral-600 py-7">
@@ -90,6 +97,14 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <button
+        type="button"
+        onClick={logOut}
+        className="mt-auto flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+      >
+        Log out
+      </button>
     </aside>
   );
 }

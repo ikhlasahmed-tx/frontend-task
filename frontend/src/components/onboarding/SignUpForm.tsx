@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { Button } from "@/components/ui/Button";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
@@ -12,10 +11,11 @@ const emptyValues: SignUpValues = { fullName: "", email: "", password: "", confi
 
 export function SignUpForm() {
   const router = useRouter();
-  const { update: updateOnboarding } = useOnboarding();
   const [values, setValues] = useState<SignUpValues>(emptyValues);
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [pending, setPending] = useState(false);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const next = { ...values, [event.target.name]: event.target.value };
@@ -23,7 +23,7 @@ export function SignUpForm() {
     if (submitted) setErrors(validateSignUp(next));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
 
@@ -31,9 +31,32 @@ export function SignUpForm() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    // TODO (backend): POST /api/auth/register with `values`
-    updateOnboarding({ email: values.email.trim() });
-    router.push("/verify-email");
+    setFormError("");
+    setPending(true);
+    try {
+      const { fullName, email, password } = values;
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+      if (res.ok) {
+        // Stays pending while the next page loads, so the button can't be pressed twice.
+        router.push("/verify-email");
+        return;
+      }
+      if (res.status === 400) {
+        // The backend's field names match this form's (fullName, email, password).
+        setErrors((await res.json()).fields ?? {});
+      } else if (res.status === 409) {
+        setErrors({ email: "An account with this email already exists" });
+      } else {
+        setFormError("Something went wrong. Try again.");
+      }
+    } catch {
+      setFormError("Can't reach the server. Check your connection and try again.");
+    }
+    setPending(false);
   }
 
   return (
@@ -73,7 +96,12 @@ export function SignUpForm() {
         onChange={handleChange}
         error={errors.confirmPassword}
       />
-      <Button type="submit" variant="primary" className="h-12 w-full">
+      {formError && (
+        <p role="alert" className="text-caption text-danger">
+          {formError}
+        </p>
+      )}
+      <Button type="submit" variant="primary" className="h-12 w-full" disabled={pending}>
         Continue
       </Button>
     </form>

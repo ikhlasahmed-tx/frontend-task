@@ -30,3 +30,20 @@ export function validateSignUp(values: SignUpValues): SignUpErrors {
 
   return errors;
 }
+
+export type LoginValues = Pick<SignUpValues, "email" | "password">;
+export type LoginErrors = Partial<Record<keyof LoginValues, string>>;
+
+// No length rule here: existing accounts are checked by the backend, not re-validated.
+export function validateLogin(values: LoginValues): LoginErrors {
+  const errors: LoginErrors = {};
+
+  if (!EMAIL_PATTERN.test(values.email.trim())) {
+    errors.email = "Enter a valid email address";
+  }
+  if (!values.password) {
+    errors.password = "Enter your password";
+  }
+
+  return errors;
+}

@@ -29,4 +29,12 @@ export class Wallet {
         unique: true
     })
     address!: string
+
+    @Column({
+        type: "numeric",
+        precision: 18,
+        scale: 2,
+        default: 0
+    })
+    balance_usd!: string
 }

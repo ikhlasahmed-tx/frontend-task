@@ -62,10 +62,3 @@ export const solPerformance: TokenPerformance = {
   changeUsd: 12.35,
   changePercent: 5.4,
 };
-
-export const wallet: Wallet = {
-  name: "My Wallet",
-  avatarInitial: "A",
-  address: "4M5Yr...PifAL",
-  balanceUsd: 0,
-};

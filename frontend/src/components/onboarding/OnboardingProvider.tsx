@@ -1,102 +1,73 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { stripLocale } from "@/i18n/config";
 
-export type OnboardingData = {
-  email: string;
-  citizenship: string; // ISO country code, e.g. "PK"; "" until chosen
+// The parts of GET /api/me that onboarding uses.
+type Me = {
+  user: { email: string; citizenship: string | null; hasPasscode: boolean };
+  wallet: object | null;
 };
 
 type OnboardingContextValue = {
-  data: OnboardingData;
-  update: (patch: Partial<OnboardingData>) => void;
+  me: Me | undefined; // undefined until loaded
   passcode: string; // from Set a passcode, for Confirm to compare; "" until set
   setPasscode: (passcode: string) => void;
 };
 
-const EMPTY: OnboardingData = { email: "", citizenship: "" };
+// The screens that need a logged-in user, in the order they are done.
+const STEPS = ["/verify-email", "/citizenship", "/creating-wallet", "/passcode", "/confirm-passcode"];
 
-// What each page needs from earlier steps, and where to send the user when it's missing (checked in order).
-const REQUIRED: Record<string, (keyof OnboardingData)[]> = {
-  "/verify-email": ["email"],
-  "/citizenship": ["email"],
-  "/creating-wallet": ["email", "citizenship"],
-  "/passcode": ["email", "citizenship"],
-  "/confirm-passcode": ["email", "citizenship"],
-};
-const STEP_FOR: Record<keyof OnboardingData, string> = { email: "/signup", citizenship: "/citizenship" };
-const STORAGE_KEY = "swarppay.onboarding";
-
-const listeners = new Set<() => void>();
-let memory: string | null = null; // fallback when the browser blocks sessionStorage
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function readSaved(): string | null {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY);
-  } catch {
-    return memory;
-  }
-}
-
-const readOnServer = () => undefined;
-
-// End of onboarding: forget the saved email/citizenship. Deliberately doesn't notify listeners,
-// so the redirect check below can't fire before the caller leaves the page.
-export function clearOnboardingData() {
-  memory = null;
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // storage blocked: `memory` was the only copy
-  }
+// The first step the backend says is still missing.
+function currentStep(me: Me) {
+  if (!me.user.citizenship) return "/citizenship";
+  if (!me.wallet) return "/creating-wallet";
+  return "/passcode";
 }
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const saved = useSyncExternalStore(subscribe, readSaved, readOnServer);
-  // React state only, never saved: sessionStorage can be read by any script, and a refresh should drop it.
+  const [me, setMe] = useState<Me>();
+  // React state only, never saved: browser storage can be read by any script, and a refresh should drop it.
   const [passcode, setPasscode] = useState("");
 
-  const data = useMemo<OnboardingData>(() => {
-    if (!saved) return EMPTY;
-    try {
-      return { ...EMPTY, ...JSON.parse(saved) };
-    } catch {
-      return EMPTY;
-    }
-  }, [saved]);
-
-  const update = useCallback(
-    (patch: Partial<OnboardingData>) => {
-      const next = JSON.stringify({ ...data, ...patch });
-      try {
-        sessionStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        memory = next;
-      }
-      listeners.forEach((listener) => listener());
-    },
-    [data],
-  );
-
-  // Send users back to the first earlier step they haven't done (only once saved data has been read).
-  const pathname = usePathname();
+  // On every onboarding screen, ask the backend how far the user is and move them if they can't be here yet.
+  const pathname = stripLocale(usePathname()); // "/ru/passcode" → "/passcode"
   const router = useRouter();
   useEffect(() => {
-    if (saved === undefined) return;
-    const missing = REQUIRED[pathname]?.find((field) => !data[field]);
-    if (missing) router.replace(STEP_FOR[missing]);
-    else if (pathname === "/confirm-passcode" && !passcode) router.replace("/passcode"); // e.g. after a refresh
-  }, [saved, data, passcode, pathname, router]);
+    const index = STEPS.indexOf(pathname);
+    if (index === -1) return; // /signup and /login are open to everyone
 
-  const value = useMemo(() => ({ data, update, passcode, setPasscode }), [data, update, passcode]);
+    let cancelled = false;
+    fetch("/api/me")
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.status === 401) return router.replace("/login");
+        if (!res.ok) return;
+
+        const loaded: Me = await res.json();
+        if (cancelled) return;
+        setMe(loaded);
+
+        if (loaded.user.hasPasscode) return router.replace("/"); // onboarding already finished
+        const step = currentStep(loaded);
+        // Earlier screens stay open; Confirm passcode belongs to the passcode step.
+        const lastAllowed = STEPS.indexOf(step) + (step === "/passcode" ? 1 : 0);
+        if (index > lastAllowed) router.replace(step);
+        else if (pathname === "/confirm-passcode" && !passcode) router.replace("/passcode"); // e.g. after a refresh
+      })
+      .catch(() => {
+        // Backend unreachable: stay on the page; the screen's own request will show the error.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, passcode, router]);
+
+  const value = useMemo(() => ({ me, passcode, setPasscode }), [me, passcode]);
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }
@@ -108,6 +79,6 @@ export function useOnboarding() {
 }
 
 export function OnboardingEmail() {
-  const { data } = useOnboarding();
-  return <>{data.email}</>;
+  const { me } = useOnboarding();
+  return <>{me?.user.email}</>;
 }

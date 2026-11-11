@@ -21,3 +21,321 @@ paths:
                   status:
                     type: string
                     example: ok
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Create an account and log in
+      description: >
+        Email is trimmed and lowercased. On success the response sets an
+        httpOnly `session` cookie (JWT, 7 days).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password]
+              properties:
+                fullName:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: Ali Khan
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                  example: ali@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  description: At most 72 bytes (UTF-8).
+                  example: password123
+      responses:
+        "201":
+          description: Account created; `session` cookie set
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=eyJhbGciOi...; Path=/; HttpOnly; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Validation failed
+                fields:
+                  email: Enter a valid email address
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: An account with this email already exists
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with email and password
+      description: >
+        On success sets the httpOnly `session` cookie (JWT, 7 days). A wrong
+        email and a wrong password get the same `401`, so the route can't be used
+        to find out which emails have accounts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: ali@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "200":
+          description: Logged in; `session` cookie set
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Wrong email or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Email or password is incorrect
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out
+      description: Clears the `session` cookie. Works with or without one.
+      responses:
+        "204":
+          description: Logged out
+
+  /api/me:
+    get:
+      tags: [Me]
+      summary: Get the logged-in user and their wallet
+      description: >
+        Needs the `session` cookie set by register or login. `citizenship` and
+        `wallet` are null until those onboarding steps are done.
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: The current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401":
+          description: Missing, invalid or expired session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Not logged in
+    patch:
+      tags: [Me]
+      summary: Set the logged-in user's citizenship and/or passcode
+      description: >
+        Needs the `session` cookie. Send at least one field. `citizenship` must be
+        one of the codes in the frontend's country list (ISO 3166-1 alpha-2,
+        e.g. `GB` for the United Kingdom, not `UK`). `passcode` needs a wallet
+        first and can only be set once; it is stored as a bcrypt hash.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                citizenship:
+                  type: string
+                  pattern: "^[A-Z]{2}$"
+                  example: PK
+                passcode:
+                  type: string
+                  pattern: "^[0-9]{6}$"
+                  description: Six digits as a string, so leading zeros are kept.
+                  example: "012345"
+      responses:
+        "200":
+          description: Updated; same shape as `GET /api/me`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "400":
+          description: Empty body, unknown country code or bad passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidFields:
+                  value:
+                    error: Validation failed
+                    fields:
+                      citizenship: Choose a valid country
+                      passcode: Enter a 6-digit passcode
+                emptyBody:
+                  value:
+                    error: Nothing to update
+        "401":
+          description: Missing, invalid or expired session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Not logged in
+        "409":
+          description: Passcode sent before the wallet exists, or already set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                noWallet:
+                  value:
+                    error: Create your wallet first
+                alreadySet:
+                  value:
+                    error: Passcode is already set
+
+  /api/me/wallet:
+    post:
+      tags: [Me]
+      summary: Create the logged-in user's wallet
+      description: >
+        Needs the `session` cookie and citizenship to be set first. Creates a
+        placeholder wallet (random Solana-looking address, no private key).
+        Safe to call again: returns the existing wallet with `200`.
+      security:
+        - sessionCookie: []
+      responses:
+        "201":
+          description: Wallet created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResponse"
+        "200":
+          description: The user already had a wallet; it is returned unchanged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResponse"
+        "401":
+          description: Missing, invalid or expired session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Not logged in
+        "409":
+          description: Citizenship is not set yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Set your citizenship first
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+
+  schemas:
+    User:
+      type: object
+      required: [id, fullName, email, citizenship, hasPasscode]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          example: Ali Khan
+        email:
+          type: string
+          example: ali@example.com
+        citizenship:
+          type: [string, "null"]
+          example: null
+        hasPasscode:
+          type: boolean
+          example: false
+    Me:
+      type: object
+      required: [user, wallet]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        wallet:
+          oneOf:
+            - $ref: "#/components/schemas/Wallet"
+            - type: "null"
+    WalletResponse:
+      type: object
+      required: [wallet]
+      properties:
+        wallet:
+          $ref: "#/components/schemas/Wallet"
+    Wallet:
+      type: object
+      required: [name, address, balanceUsd]
+      properties:
+        name:
+          type: string
+          example: My Wallet
+        address:
+          type: string
+          example: 4M5YxQk8p3nT2vRbW9cJhL6sDfG1aZeU7yNmK2qPiVtX
+        balanceUsd:
+          type: number
+          example: 0
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        fields:
+          type: object
+          additionalProperties:
+            type: string
