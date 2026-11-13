@@ -55,14 +55,27 @@ async function logOut(loginPath: string) {
   if (res.ok) window.location.replace(loginPath);
 }
 
+// Used by the sidebar (lg and up) and by the TopBar below lg, where the tab bar has no room for it.
+export function LogoutButton({ className }: { className: string }) {
+  const path = useLocalePath();
+  const { t } = useTranslation();
+
+  return (
+    <button type="button" onClick={() => logOut(path("/login"))} className={className}>
+      {t("nav.logout")}
+    </button>
+  );
+}
+
 export function Sidebar() {
   const pathname = stripLocale(usePathname()); // "/ru" → "/", so the active item still matches
   const path = useLocalePath();
   const { t } = useTranslation();
 
   return (
-    <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col gap-8 border-r-[0.2px] border-neutral-400 bg-neutral-600 py-7">
-      <div className="flex items-center px-9">
+    // Below lg (1024px) this is a bottom tab bar; from lg up it is the full sidebar.
+    <aside className="fixed inset-x-0 bottom-0 z-10 flex border-t-[0.2px] border-neutral-400 bg-neutral-600 lg:sticky lg:inset-x-auto lg:top-0 lg:bottom-auto lg:h-dvh lg:w-56 lg:shrink-0 lg:flex-col lg:gap-8 lg:border-t-0 lg:border-r-[0.2px] lg:py-7">
+      <div className="hidden items-center px-9 lg:flex">
         <Image
           src="/assets/logo.svg"
           alt="SwarpPay"
@@ -73,7 +86,7 @@ export function Sidebar() {
         />
       </div>
 
-      <nav aria-label={t("nav.label")} className="flex flex-col gap-2">
+      <nav aria-label={t("nav.label")} className="flex w-full lg:flex-col lg:gap-2">
         {navItems.map(({ id, href, icon }) => {
           const active = pathname === href;
           return (
@@ -81,7 +94,7 @@ export function Sidebar() {
               key={href}
               href={path(href)}
               aria-current={active ? "page" : undefined}
-              className={`flex h-11 items-center gap-2 pr-3.5 pl-8 text-p2 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
+              className={`flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-caption transition-colors lg:h-11 lg:flex-none lg:flex-row lg:justify-start lg:gap-2 lg:pr-3.5 lg:pl-8 lg:text-p2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
                 active
                   ? "bg-primary-shade-3 font-bold text-primary"
                   : "font-normal text-neutral-200 hover:text-neutral-100"
@@ -104,17 +117,12 @@ export function Sidebar() {
       </nav>
 
       {/* Not in the Figma design: Home had no language picker. */}
-      <div className="mt-auto flex flex-col gap-2">
+      {/* Below lg these two live in the TopBar instead */}
+      <div className="mt-auto hidden flex-col gap-2 lg:flex">
         <div className="flex h-11 items-center pl-8">
           <LanguageSelector />
         </div>
-        <button
-          type="button"
-          onClick={() => logOut(path("/login"))}
-          className="flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
-        >
-          {t("nav.logout")}
-        </button>
+        <LogoutButton className="flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary" />
       </div>
     </aside>
   );

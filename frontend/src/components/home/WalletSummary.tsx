@@ -14,7 +14,7 @@ export function WalletSummary({ wallet }: { wallet: Wallet }) {
   return (
     <section
       aria-label={t("home.wallet.label")}
-      className="flex flex-col justify-center gap-6 border-b-[0.2px] border-neutral-400 py-7 pr-8 pl-7"
+      className="flex flex-col justify-center gap-6 border-b-[0.2px] border-neutral-400 px-4 py-7 lg:pr-8 lg:pl-7"
     >
       {/* Wallet name and address */}
       <div className="flex items-center gap-2.5">

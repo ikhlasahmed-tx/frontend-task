@@ -22,7 +22,7 @@ export async function RemainingSteps({ steps }: { steps: SetupStep[] }) {
   if (!nextStep) return null;
 
   return (
-    <section className="flex flex-col gap-9 border-b-[0.2px] border-neutral-400 p-7">
+    <section className="flex flex-col gap-9 border-b-[0.2px] border-neutral-400 px-4 py-7 lg:px-7">
       <div className="flex flex-col gap-2">
         <h2 className="font-display text-h4 font-semibold text-white">{t("home.remaining.title")}</h2>
         <p className="text-p2 text-neutral-200">
@@ -49,7 +49,7 @@ export async function RemainingSteps({ steps }: { steps: SetupStep[] }) {
               <li
                 key={step.id}
                 aria-current="step"
-                className="flex items-center justify-between gap-4 rounded-xl bg-neutral-500 p-5"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-neutral-500 p-5"
               >
                 <StepContent id={step.id} title={t(`home.steps.${step.id}.title`)} description={description(step)} linkLabel={t("home.remaining.why")} />
                 <Button>{action(step)}</Button>
@@ -72,7 +72,8 @@ function StepContent({ id, title, description, linkLabel }: { id: string; title:
   const icon = stepIcons[id];
 
   return (
-    <div className="flex min-w-0 flex-1 items-start gap-2.5">
+    // basis-60: below 240px of text the card's button wraps under it instead of squeezing it
+    <div className="flex min-w-0 flex-1 basis-60 items-start gap-2.5">
       <span className="relative size-6 shrink-0">
         {icon && (
           <Image

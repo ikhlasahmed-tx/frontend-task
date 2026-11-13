@@ -27,7 +27,7 @@ export async function QuickActions() {
   return (
     <section
       aria-label={t("home.quickActions.label")}
-      className="flex flex-1 flex-col justify-center gap-5 border-b-[0.2px] border-neutral-400 py-7 pr-8 pl-7"
+      className="flex flex-1 flex-col justify-center gap-5 border-b-[0.2px] border-neutral-400 px-4 py-7 lg:pr-8 lg:pl-7"
     >
       {actions.map(({ id, icon }) => (
         <button

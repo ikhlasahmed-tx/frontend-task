@@ -16,7 +16,7 @@ export function WalletPerformance({ token }: { token: TokenPerformance }) {
   const sign = token.changeUsd >= 0 ? "+" : "-";
 
   return (
-    <section className="flex flex-col gap-5 p-7">
+    <section className="flex flex-col gap-5 px-4 py-7 lg:px-7">
       <h2 className="font-display text-h4 font-semibold text-white">{t("home.performance.title")}</h2>
 
       <div className="flex flex-col gap-5">
