@@ -47,3 +47,15 @@ test("a 409 shows the taken-email message under the email field", async () => {
 
   expect(await screen.findByText("An account with this email already exists")).toBeTruthy();
 });
+
+test("an invalid submit moves focus to the first field with an error", () => {
+  render(
+    <I18nProvider locale="en" dictionary={en}>
+      <SignUpForm />
+    </I18nProvider>,
+  );
+  fireEvent.change(screen.getByPlaceholderText("Full name"), { target: { value: "Test User" } });
+  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+  expect(document.activeElement).toBe(screen.getByPlaceholderText("Email address"));
+});

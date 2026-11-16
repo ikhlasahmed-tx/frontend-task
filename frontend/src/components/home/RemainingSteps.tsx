@@ -52,7 +52,8 @@ export async function RemainingSteps({ steps }: { steps: SetupStep[] }) {
                 className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-neutral-500 p-5"
               >
                 <StepContent id={step.id} title={t(`home.steps.${step.id}.title`)} description={description(step)} linkLabel={t("home.remaining.why")} />
-                <Button>{action(step)}</Button>
+                {/* ml: when it wraps under the text (phones), it lines up with the text, past the 24px icon + 10px gap */}
+                <Button className="ml-[34px]">{action(step)}</Button>
               </li>
             );
           }

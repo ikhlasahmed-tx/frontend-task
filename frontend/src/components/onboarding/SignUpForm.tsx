@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { PasswordField } from "@/components/ui/PasswordField";
@@ -28,6 +29,12 @@ export function SignUpForm() {
   const [formError, setFormError] = useState("");
   const [pending, setPending] = useState(false);
 
+  // Render the messages first, then focus the first invalid field so screen readers read it with its error.
+  function showErrors(form: HTMLFormElement, next: SignUpErrors) {
+    flushSync(() => setErrors(next));
+    form.querySelector<HTMLInputElement>("[aria-invalid=true]")?.focus();
+  }
+
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const next = { ...values, [event.target.name]: event.target.value };
     setValues(next);
@@ -36,11 +43,12 @@ export function SignUpForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setSubmitted(true);
 
     const nextErrors = validateSignUp(values);
+    if (Object.keys(nextErrors).length > 0) return showErrors(form, nextErrors);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
 
     setFormError("");
     setPending(true);
@@ -60,13 +68,13 @@ export function SignUpForm() {
         // Show this form's own (translated) messages for the fields the backend rejected, not its English text.
         // The form already blocks short passwords, so the backend only rejects one for being over 72 bytes.
         const fields: Record<string, string> = (await res.json()).fields ?? {};
-        setErrors({
+        showErrors(form, {
           ...(fields.fullName && { fullName: "fullName" }),
           ...(fields.email && { email: "email" }),
           ...(fields.password && { password: "passwordTooLong" }),
         });
       } else if (res.status === 409) {
-        setErrors({ email: "emailTaken" });
+        showErrors(form, { email: "emailTaken" });
       } else {
         setFormError(t("common.somethingWrong"));
       }

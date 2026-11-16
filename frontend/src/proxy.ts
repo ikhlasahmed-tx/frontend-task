@@ -27,10 +27,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Home: visitors without a session cookie go straight to login, so they never see the Home frame flash.
-  // Only checks that the cookie exists; the page itself still asks the backend whether it is valid.
+  // Home and Settings: visitors without a session cookie go straight to login, so they never see the frame flash.
+  // Only checks that the cookie exists; Home itself still asks the backend whether it is valid (Settings doesn't yet).
   // Add the other logged-in pages (Wallet, Transactions…) here when they exist.
-  if (pathname === `/${locale}` && !request.cookies.has("session")) {
+  const loggedInPage = pathname === `/${locale}` || pathname === `/${locale}/settings` || pathname.startsWith(`/${locale}/settings/`);
+  if (loggedInPage && !request.cookies.has("session")) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 

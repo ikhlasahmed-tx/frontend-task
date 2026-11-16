@@ -168,5 +168,19 @@
   },
   "language": {
     "label": "Язык"
+  },
+  "settings": {
+    "title": "Настройки",
+    "back": "Назад к настройкам",
+    "general": {
+      "title": "Общие",
+      "description": "Язык приложения"
+    },
+    "language": {
+      "description": "Выберите язык интерфейса приложения"
+    },
+    "logout": {
+      "description": "Выйти из SwarpPay на этом устройстве"
+    }
   }
 }

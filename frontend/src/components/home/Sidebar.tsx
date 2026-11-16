@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { LanguageSelector } from "@/components/onboarding/LanguageSelector";
 import { stripLocale } from "@/i18n/config";
 import { useLocalePath } from "@/i18n/useLocalePath";
 
@@ -55,7 +54,7 @@ async function logOut(loginPath: string) {
   if (res.ok) window.location.replace(loginPath);
 }
 
-// Used by the sidebar (lg and up) and by the TopBar below lg, where the tab bar has no room for it.
+// Used by Settings → General.
 export function LogoutButton({ className }: { className: string }) {
   const path = useLocalePath();
   const { t } = useTranslation();
@@ -74,7 +73,8 @@ export function Sidebar() {
 
   return (
     // Below lg (1024px) this is a bottom tab bar; from lg up it is the full sidebar.
-    <aside className="fixed inset-x-0 bottom-0 z-10 flex border-t-[0.2px] border-neutral-400 bg-neutral-600 lg:sticky lg:inset-x-auto lg:top-0 lg:bottom-auto lg:h-dvh lg:w-56 lg:shrink-0 lg:flex-col lg:gap-8 lg:border-t-0 lg:border-r-[0.2px] lg:py-7">
+    // The phone Settings → General screen has a back arrow instead of the tab bar (Figma 6:833).
+    <aside className={`${pathname === "/settings/general" ? "hidden lg:flex" : "flex"} fixed inset-x-0 bottom-0 z-10 border-t-[0.2px] border-neutral-400 bg-neutral-600 lg:sticky lg:inset-x-auto lg:top-0 lg:bottom-auto lg:h-dvh lg:w-56 lg:shrink-0 lg:flex-col lg:gap-8 lg:border-t-0 lg:border-r-[0.2px] lg:py-7`}>
       <div className="hidden items-center px-9 lg:flex">
         <Image
           src="/assets/logo.svg"
@@ -86,21 +86,30 @@ export function Sidebar() {
         />
       </div>
 
-      <nav aria-label={t("nav.label")} className="flex w-full lg:flex-col lg:gap-2">
+      {/* Phone bar (Figma 1:55): five 44px icon circles, 20px above and 10px below, 74px tall */}
+      <nav aria-label={t("nav.label")} className="flex w-full justify-between px-4 pt-5 pb-2.5 lg:flex-col lg:justify-start lg:gap-2 lg:p-0">
         {navItems.map(({ id, href, icon }) => {
-          const active = pathname === href;
+          // Sub-pages keep their tab lit: /settings/general → Settings.
+          const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={href}
               href={path(href)}
               aria-current={active ? "page" : undefined}
-              className={`flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-caption transition-colors lg:h-11 lg:flex-none lg:flex-row lg:justify-start lg:gap-2 lg:pr-3.5 lg:pl-8 lg:text-p2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
+              className={`flex size-11 shrink-0 items-center justify-center rounded-full transition-colors lg:h-11 lg:w-auto lg:justify-start lg:gap-2 lg:rounded-none lg:pr-3.5 lg:pl-8 lg:text-p2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
                 active
                   ? "bg-primary-shade-3 font-bold text-primary"
-                  : "font-normal text-neutral-200 hover:text-neutral-100"
+                  : "font-normal text-neutral-200 hover:bg-neutral-500 hover:text-neutral-100 lg:hover:bg-transparent"
               }`}
             >
-              <span className="relative size-[22px] shrink-0">
+              <Image
+                src={`/assets/nav/${id}${active ? "-active" : ""}.svg`}
+                alt=""
+                width={24}
+                height={24}
+                className="size-6 lg:hidden"
+              />
+              <span className="relative hidden size-[22px] shrink-0 lg:block">
                 <Image
                   src={icon.src}
                   alt=""
@@ -110,20 +119,12 @@ export function Sidebar() {
                   style={{ left: icon.left, top: icon.top, width: icon.width, height: icon.height }}
                 />
               </span>
-              {t(`nav.${id}`)}
+              {/* Icons only on phones; the name stays for screen readers */}
+              <span className="max-lg:sr-only">{t(`nav.${id}`)}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Not in the Figma design: Home had no language picker. */}
-      {/* Below lg these two live in the TopBar instead */}
-      <div className="mt-auto hidden flex-col gap-2 lg:flex">
-        <div className="flex h-11 items-center pl-8">
-          <LanguageSelector />
-        </div>
-        <LogoutButton className="flex h-11 items-center pr-3.5 pl-8 text-left text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary" />
-      </div>
     </aside>
   );
 }

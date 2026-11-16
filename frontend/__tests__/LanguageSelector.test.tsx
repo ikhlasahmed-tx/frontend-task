@@ -23,8 +23,7 @@ test("shows the current language", () => {
       <LanguageSelector />
     </I18nProvider>,
   );
-  expect(screen.getByText("Русский (RU)", { selector: "span" })).toBeTruthy(); // the visible label, not the <option>
-  expect((screen.getByLabelText("Язык") as HTMLSelectElement).value).toBe("ru");
+  expect(screen.getByRole("button", { name: "Язык: Русский (RU)" })).toBeTruthy();
 });
 
 test("picking another language opens the same page in it and remembers the choice", () => {
@@ -34,7 +33,8 @@ test("picking another language opens the same page in it and remembers the choic
       <LanguageSelector />
     </I18nProvider>,
   );
-  fireEvent.change(screen.getByLabelText("Language"), { target: { value: "ru" } });
+  fireEvent.click(screen.getByRole("button", { name: "Language: English (EN)" }));
+  fireEvent.click(screen.getByRole("option", { name: "Русский (RU)" }));
 
   expect(nav.push).toHaveBeenCalledWith("/ru/signup");
   expect(document.cookie).toContain("lang=ru");
@@ -47,7 +47,28 @@ test("on Home the URL is just the language", () => {
       <LanguageSelector />
     </I18nProvider>,
   );
-  fireEvent.change(screen.getByLabelText("Язык"), { target: { value: "en" } });
+  fireEvent.click(screen.getByRole("button", { name: "Язык: Русский (RU)" }));
+  fireEvent.click(screen.getByRole("option", { name: "English (EN)" }));
 
   expect(nav.push).toHaveBeenCalledWith("/en");
+});
+
+test("keyboard: arrow opens the list, Enter picks, Escape closes back to the button", () => {
+  nav.pathname = "/en/login";
+  render(
+    <I18nProvider locale="en" dictionary={en}>
+      <LanguageSelector />
+    </I18nProvider>,
+  );
+  const button = screen.getByRole("button", { name: "Language: English (EN)" });
+  fireEvent.keyDown(button, { key: "ArrowDown" });
+  fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+  expect(screen.queryByRole("listbox")).toBeNull();
+  expect(document.activeElement).toBe(button);
+
+  fireEvent.keyDown(button, { key: "ArrowDown" });
+  const list = screen.getByRole("listbox");
+  fireEvent.keyDown(list, { key: "ArrowDown" });
+  fireEvent.keyDown(list, { key: "Enter" });
+  expect(nav.push).toHaveBeenCalledWith("/ru/login");
 });

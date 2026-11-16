@@ -1,21 +1,22 @@
 import Image from "next/image";
-import { LogoutButton } from "@/components/home/Sidebar";
-import { LanguageSelector } from "@/components/onboarding/LanguageSelector";
+import type { ReactNode } from "react";
 import { getT } from "@/i18n/server";
 
+// Phones: a plain 24px icon (Figma 1:55); before: widens the tap area to 40px. lg and up: a 44px circle.
 const iconButton =
-  "flex size-11 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-400 bg-neutral-500 transition-colors hover:bg-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+  "relative flex size-6 shrink-0 items-center justify-center rounded-full transition-colors before:absolute before:-inset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:size-11 lg:border-[0.5px] lg:border-neutral-400 lg:bg-neutral-500 lg:before:hidden lg:hover:bg-neutral-400";
 
-export async function TopBar({ title }: { title: string }) {
+// `identity` (Home only) replaces the title on phones: avatar, wallet name and address, as in Figma 1:55.
+export async function TopBar({ title, identity }: { title: string; identity?: ReactNode }) {
   const t = await getT();
 
   return (
-    // Below md the search drops to its own full-width row under the title and buttons.
-    <header className="flex flex-wrap items-center gap-3 border-b-[0.2px] border-neutral-400 p-4 lg:flex-nowrap lg:py-5 lg:pr-8 lg:pl-7">
-      <h1 className="mr-auto font-display text-h4 font-bold text-white">{title}</h1>
+    <header className="flex items-center gap-3 border-b-[0.2px] border-neutral-400 p-4 lg:py-5 lg:pr-8 lg:pl-7">
+      {identity && <div className="mr-auto min-w-0 lg:hidden">{identity}</div>}
+      <h1 className={`mr-auto font-display text-h4 font-bold text-white ${identity ? "max-lg:sr-only" : ""}`}>{title}</h1>
 
-      <form role="search" className="order-last w-full min-w-0 md:order-none md:w-auto">
-        <label className="flex h-[46px] w-full max-w-full cursor-text items-center gap-3 rounded-full border-[0.5px] border-neutral-400 bg-neutral-500 px-4 focus-within:border-primary md:w-[358px]">
+      <form role="search" className="hidden lg:block">
+        <label className="flex h-[46px] w-[358px] max-w-full cursor-text items-center gap-3 rounded-full border-[0.5px] border-neutral-400 bg-neutral-500 px-4 focus-within:border-primary">
           <Image src="/assets/icon-search.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
           <span className="sr-only">{t("home.search")}</span>
           <input
@@ -27,14 +28,15 @@ export async function TopBar({ title }: { title: string }) {
         </label>
       </form>
 
-      <div className="flex items-center gap-3">
-        {/* The sidebar holds these from lg up; the mobile tab bar has no room for them */}
-        <div className="lg:hidden">
-          <LanguageSelector />
-        </div>
+      <div className="flex shrink-0 items-center gap-3">
+        {/* Does nothing yet, like QR and notifications: there is no search page */}
+        <button type="button" aria-label={t("home.search")} className={`${iconButton} lg:hidden`}>
+          <Image src="/assets/topbar/search.svg" alt="" width={24} height={24} className="size-6" />
+        </button>
 
         <button type="button" aria-label={t("home.scanQr")} className={iconButton}>
-          <span className="relative size-6">
+          <Image src="/assets/topbar/qr.svg" alt="" width={24} height={24} className="size-6 lg:hidden" />
+          <span className="relative hidden size-6 lg:block">
             <Image
               src="/assets/icon-qr.svg"
               alt=""
@@ -46,10 +48,9 @@ export async function TopBar({ title }: { title: string }) {
         </button>
 
         <button type="button" aria-label={t("home.notifications")} className={iconButton}>
-          <Image src="/assets/icon-bell.svg" alt="" width={22} height={22} className="size-[22px]" />
+          <Image src="/assets/topbar/bell.svg" alt="" width={24} height={24} className="size-6 lg:hidden" />
+          <Image src="/assets/icon-bell.svg" alt="" width={22} height={22} className="hidden size-[22px] lg:block" />
         </button>
-
-        <LogoutButton className="h-11 text-p2 text-neutral-200 transition-colors hover:text-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden" />
       </div>
     </header>
   );

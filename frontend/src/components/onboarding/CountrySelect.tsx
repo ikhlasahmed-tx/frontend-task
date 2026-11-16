@@ -52,15 +52,33 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
+  // Type-ahead like a native <select>: letters typed within half a second build one search ("pa" → Pakistan);
+  // pressing the same single letter again moves to the next country with it.
+  const typed = useRef({ text: "", time: 0 });
+  function typeAhead(key: string, now: number) {
+    const text = (now - typed.current.time < 500 ? typed.current.text : "") + key.toLocaleLowerCase();
+    typed.current = { text, time: now };
+    const start = text.length === 1 ? activeIndex + 1 : activeIndex;
+    const ordered = [...countries.slice(start), ...countries.slice(0, start)];
+    const match = ordered.find((country) => country.name.toLocaleLowerCase().startsWith(text));
+    if (match) setActiveIndex(countries.indexOf(match));
+  }
+
+  const last = countries.length - 1;
   function handleListKeyDown(event: KeyboardEvent) {
-    if (event.key === "ArrowDown") setActiveIndex((i) => Math.min(i + 1, countries.length - 1));
+    if (event.key === "ArrowDown") setActiveIndex((i) => Math.min(i + 1, last));
     else if (event.key === "ArrowUp") setActiveIndex((i) => Math.max(i - 1, 0));
+    else if (event.key === "PageDown") setActiveIndex((i) => Math.min(i + 10, last));
+    else if (event.key === "PageUp") setActiveIndex((i) => Math.max(i - 10, 0));
+    else if (event.key === "Home") setActiveIndex(0);
+    else if (event.key === "End") setActiveIndex(last);
     else if (event.key === "Enter") choose(activeIndex);
     else if (event.key === "Escape") {
       setOpen(false);
       buttonRef.current?.focus();
     } else if (event.key === "Tab") setOpen(false);
-    else return; 
+    else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) typeAhead(event.key, event.timeStamp);
+    else return;
     if (event.key !== "Tab") event.preventDefault();
   }
 
@@ -79,7 +97,7 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
             openList();
           }
         }}
-        className={`flex h-12 w-full items-center justify-between gap-3 rounded-xl border-[0.5px] bg-neutral-500 px-4 py-3 text-left text-p2 outline-none focus-visible:border-primary ${
+        className={`flex h-12 w-full items-center justify-between gap-3 rounded-xl border-[0.5px] bg-neutral-500 px-4 py-3 text-left text-p2 focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           open ? "border-primary" : "border-neutral-400"
         }`}
       >
@@ -106,7 +124,8 @@ export function CountrySelect({ label, value, onChange }: CountrySelectProps) {
               role="option"
               aria-selected={country.code === value}
               onClick={() => choose(index)}
-              className={`flex h-10 cursor-pointer items-center px-4 text-p2 hover:bg-neutral-400 ${
+              onMouseEnter={() => setActiveIndex(index)} // one highlight shared by mouse and keyboard
+              className={`flex h-10 cursor-pointer items-center px-4 text-p2 ${
                 index === activeIndex ? "bg-neutral-400" : ""
               } ${country.code === value ? "font-medium text-primary" : "text-white"}`}
             >

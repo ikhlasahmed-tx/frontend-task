@@ -46,8 +46,31 @@
   --text-h5--line-height: normal;
 }
 
+/* The app is dark-only: native parts (the language <select> popup, scrollbars) render dark too. */
+:root {
+  color-scheme: dark;
+}
+
 body {
   background: var(--color-neutral-600);
   color: #ffffff;
   font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-primary-shade-1);
+  color: #ffffff;
+}
+
+/* Browser autofill paints its own light-blue fill; keep the field's dark row and white text instead. */
+input:-webkit-autofill {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: var(--color-primary);
+  transition: background-color 0s 600000s;
+}
+
+/* Edge adds its own eye to password fields; the custom toggle (and masked passcode boxes) replace it. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
 }

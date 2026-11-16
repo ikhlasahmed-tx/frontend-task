@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { WalletIdentity } from "@/components/home/WalletIdentity";
 import type { Wallet } from "@/lib/data";
 
 export function WalletSummary({ wallet }: { wallet: Wallet }) {
@@ -16,19 +17,7 @@ export function WalletSummary({ wallet }: { wallet: Wallet }) {
       aria-label={t("home.wallet.label")}
       className="flex flex-col justify-center gap-6 border-b-[0.2px] border-neutral-400 px-4 py-7 lg:pr-8 lg:pl-7"
     >
-      {/* Wallet name and address */}
-      <div className="flex items-center gap-2.5">
-        <span
-          aria-hidden
-          className="flex size-[38px] shrink-0 items-center justify-center rounded-full border border-neutral-400 bg-primary font-display text-h5 font-semibold text-neutral-600"
-        >
-          {wallet.avatarInitial}
-        </span>
-        <div className="flex flex-col">
-          <p className="text-p1 font-medium text-white">{wallet.name}</p>
-          <p className="text-p2 text-neutral-200">{wallet.address}</p>
-        </div>
-      </div>
+      <WalletIdentity wallet={wallet} />
 
       {/* Username prompt */}
       {showUsernameBanner && (
