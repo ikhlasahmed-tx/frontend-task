@@ -2,46 +2,11 @@ import { QuickActions } from "@/components/home/QuickActions";
 import { RemainingSteps } from "@/components/home/RemainingSteps";
 import { TopBar } from "@/components/home/TopBar";
 import { TransactionsEmpty } from "@/components/home/TransactionsEmpty";
+import { UserWalletIdentity, UserWalletSummary } from "@/components/home/UserWallet";
 import { VerificationProgress } from "@/components/home/VerificationProgress";
 import { WalletPerformance } from "@/components/home/WalletPerformance";
-import { WalletSummary } from "@/components/home/WalletSummary";
-import { WalletIdentity } from "@/components/home/WalletIdentity";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { cache, Suspense } from "react";
-import { getLocalePath, getT } from "@/i18n/server";
-import { BACKEND_URL } from "@/lib/backend-url";
-import { setupSteps, solPerformance, type Wallet } from "@/lib/data";
-
-// The logged-in user's wallet from the backend. Sends the user away if there is no session or no wallet yet.
-// cache: the top bar and the wallet section both ask, and the backend still gets one request per page load.
-const getUserWallet = cache(async (): Promise<Wallet> => {
-  const path = await getLocalePath();
-  const res = await fetch(`${BACKEND_URL}/api/me`, { headers: { Cookie: (await cookies()).toString() } });
-  if (res.status === 401) redirect(path("/login"));
-  if (!res.ok) throw new Error(`GET /api/me failed with ${res.status}`);
-
-  const { user, wallet } = await res.json();
-  if (!wallet) redirect(path(user.citizenship ? "/creating-wallet" : "/citizenship"));
-  if (!user.hasPasscode) redirect(path("/passcode"));
-
-  return {
-    name: wallet.name,
-    address: `${wallet.address.slice(0, 5)}...${wallet.address.slice(-5)}`,
-    avatarInitial: user.fullName[0].toUpperCase(),
-    balanceUsd: wallet.balanceUsd,
-  };
-});
-
-async function UserWalletSummary() {
-  return <WalletSummary wallet={await getUserWallet()} />;
-}
-
-async function UserWalletIdentity() {
-  return <WalletIdentity wallet={await getUserWallet()} />;
-}
-
-const emptyWallet: Wallet = { name: "", address: "", avatarInitial: "", balanceUsd: 0 };
+import { getT } from "@/i18n/server";
+import { setupSteps, solPerformance } from "@/lib/data";
 
 export default async function Home() {
   const t = await getT();
@@ -51,12 +16,8 @@ export default async function Home() {
     <>
       <TopBar
         title={t("home.title")}
-        identity={
-          // Shown empty while the user's wallet loads, like the wallet section
-          <Suspense fallback={<WalletIdentity wallet={emptyWallet} />}>
-            <UserWalletIdentity />
-          </Suspense>
-        }
+        // Shown empty while the user's wallet loads, like the wallet section
+        identity={<UserWalletIdentity />}
       />
 
       {/* Columns stack below lg (1024px) and sit side by side above it */}
@@ -70,9 +31,7 @@ export default async function Home() {
         {/* Right column: wallet summary, then quick actions */}
         <div className="flex shrink-0 flex-col lg:w-[404px]">
           {/* Shown empty while the user's wallet loads */}
-          <Suspense fallback={<WalletSummary wallet={emptyWallet} />}>
-            <UserWalletSummary />
-          </Suspense>
+          <UserWalletSummary />
           <QuickActions />
         </div>
       </div>

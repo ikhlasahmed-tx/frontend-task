@@ -7,6 +7,7 @@ import { stripLocale } from "@/i18n/config";
 import { useLocalePath } from "@/i18n/useLocalePath";
 import { setMe, setPasscode, type Me } from "@/store/onboardingSlice";
 import type { AppDispatch, RootState } from "@/store/store";
+import { apiFetch } from "@/lib/api";
 
 // The screens that need a logged-in user, in the order they are done.
 const STEPS = ["/verify-email", "/citizenship", "/creating-wallet", "/passcode", "/confirm-passcode"];
@@ -32,7 +33,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     if (index === -1) return; // /signup and /login are open to everyone
 
     let cancelled = false;
-    fetch("/api/me")
+    apiFetch("/api/me")
       .then(async (res) => {
         if (cancelled) return;
         if (res.status === 401) return router.replace(path("/login"));

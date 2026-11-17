@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useTranslation } from "react-i18next";
 import { useLocalePath } from "@/i18n/useLocalePath";
+import { apiFetch } from "@/lib/api";
 
 // The backend answers at once; keep the screen up long enough to be read instead of flashing.
 const MIN_WAIT_MS = 2000;
@@ -23,7 +24,7 @@ export function CreatingWalletStep() {
     const minWait = new Promise((resolve) => setTimeout(resolve, MIN_WAIT_MS));
 
     // Safe to send twice (React runs effects twice in development): the backend returns the existing wallet.
-    Promise.all([fetch("/api/me/wallet", { method: "POST" }), minWait])
+    Promise.all([apiFetch("/api/me/wallet", { method: "POST" }), minWait])
       .then(([res]) => {
         if (cancelled) return;
         if (res.ok) router.replace(path("/passcode"));

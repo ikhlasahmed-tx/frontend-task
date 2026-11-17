@@ -14,16 +14,20 @@ const password = "password123";
 let server: Server;
 let base = "";
 let cookie = "";
+let accessToken = "";
 
 async function call(method: string, path: string, body?: unknown) {
   const res = await fetch(base + path, {
     method,
-    headers: { "Content-Type": "application/json", Cookie: cookie },
+    headers: { "Content-Type": "application/json", Cookie: cookie, Authorization: `Bearer ${accessToken}` },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const setCookie = res.headers.getSetCookie()[0];
   if (setCookie) cookie = setCookie.split(";")[0]!;
-  return { status: res.status, body: res.status === 204 ? null : await res.json() };
+  const json = res.status === 204 ? null : await res.json();
+  // Keep the newest access token, like the frontend will.
+  if (json?.accessToken) accessToken = json.accessToken;
+  return { status: res.status, body: json };
 }
 
 before(async () => {
@@ -50,7 +54,8 @@ test("register: bad input, success, duplicate", async () => {
   assert.equal(ok.status, 201);
   assert.equal(ok.body.user.email, email);
   assert.equal(ok.body.user.password_hash, undefined);
-  assert.match(cookie, /^session=.+/);
+  assert.match(cookie, /^refresh_token=.+/);
+  assert.equal(typeof ok.body.accessToken, "string");
 
   const repeats = await Promise.all([1, 2, 3].map(() => call("POST", "/auth/register", { fullName: "Flow Test", email, password })));
   assert.deepEqual(repeats.map((r) => r.status), [409, 409, 409]);
@@ -87,8 +92,26 @@ test("citizenship, wallet and passcode in order", async () => {
   );
 });
 
+test("refresh rotates the token; reusing the old one ends the session", async () => {
+  const oldCookie = cookie;
+  const refreshed = await call("POST", "/auth/refresh");
+  assert.equal(refreshed.status, 200);
+  assert.notEqual(cookie, oldCookie);
+  assert.equal((await call("GET", "/me")).status, 200);
+
+  const newCookie = cookie;
+  cookie = oldCookie;
+  assert.equal((await call("POST", "/auth/refresh")).status, 401);
+  cookie = newCookie;
+  assert.equal((await call("POST", "/auth/refresh")).status, 401, "the newer token died with the session");
+
+  assert.equal((await call("POST", "/auth/login", { email, password })).status, 200);
+});
+
 test("logout, then login", async () => {
   assert.equal((await call("POST", "/auth/logout")).status, 204);
+  assert.equal((await call("POST", "/auth/refresh")).status, 401);
+  accessToken = ""; // the frontend drops it on logout; the server can't revoke it before it expires
   assert.equal((await call("GET", "/me")).status, 401);
 
   const wrong = await call("POST", "/auth/login", { email, password: "wrongpass1" });

@@ -27,8 +27,8 @@ paths:
       tags: [Auth]
       summary: Create an account and log in
       description: >
-        Email is trimmed and lowercased. On success the response sets an
-        httpOnly `session` cookie (JWT, 7 days).
+        Email is trimmed and lowercased. On success returns an access token and
+        sets the httpOnly `refresh_token` cookie (session of 7 days).
       requestBody:
         required: true
         content:
@@ -54,20 +54,23 @@ paths:
                   example: password123
       responses:
         "201":
-          description: Account created; `session` cookie set
+          description: Account created; `refresh_token` cookie set
           headers:
             Set-Cookie:
               schema:
                 type: string
-                example: session=eyJhbGciOi...; Path=/; HttpOnly; SameSite=Lax
+                example: refresh_token=3f2b...e1.Xk9...; Path=/; HttpOnly; SameSite=Lax
           content:
             application/json:
               schema:
                 type: object
-                required: [user]
+                required: [user, accessToken]
                 properties:
                   user:
                     $ref: "#/components/schemas/User"
+                  accessToken:
+                    type: string
+                    description: "JWT, valid 15 minutes. Send as `Authorization: Bearer <token>`."
         "400":
           description: Validation failed
           content:
@@ -92,7 +95,8 @@ paths:
       tags: [Auth]
       summary: Log in with email and password
       description: >
-        On success sets the httpOnly `session` cookie (JWT, 7 days). A wrong
+        On success returns an access token and sets the httpOnly `refresh_token`
+        cookie (session of 7 days). A wrong
         email and a wrong password get the same `401`, so the route can't be used
         to find out which emails have accounts.
       requestBody:
@@ -111,15 +115,18 @@ paths:
                   example: password123
       responses:
         "200":
-          description: Logged in; `session` cookie set
+          description: Logged in; `refresh_token` cookie set
           content:
             application/json:
               schema:
                 type: object
-                required: [user]
+                required: [user, accessToken]
                 properties:
                   user:
                     $ref: "#/components/schemas/User"
+                  accessToken:
+                    type: string
+                    description: "JWT, valid 15 minutes. Send as `Authorization: Bearer <token>`."
         "401":
           description: Wrong email or password
           content:
@@ -129,11 +136,44 @@ paths:
               example:
                 error: Email or password is incorrect
 
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Get a new access token
+      description: >
+        Reads the `refresh_token` cookie, replaces it with a new one and returns
+        a new access token. Each refresh token works once: sending an old one
+        again ends the session, so both copies stop working. The session keeps
+        its original 7-day expiry.
+      responses:
+        "200":
+          description: New access token; new `refresh_token` cookie set
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accessToken]
+                properties:
+                  accessToken:
+                    type: string
+                    description: "JWT, valid 15 minutes. Send as `Authorization: Bearer <token>`."
+        "401":
+          description: Missing, invalid, expired or reused refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Not logged in
+
   /api/auth/logout:
     post:
       tags: [Auth]
       summary: Log out
-      description: Clears the `session` cookie. Works with or without one.
+      description: >
+        Ends the session on the server and clears the `refresh_token` cookie.
+        Works with or without one. Access tokens already issued stay valid until
+        they expire (at most 15 minutes), so the client must drop its copy.
       responses:
         "204":
           description: Logged out
@@ -143,10 +183,10 @@ paths:
       tags: [Me]
       summary: Get the logged-in user and their wallet
       description: >
-        Needs the `session` cookie set by register or login. `citizenship` and
+        Needs an access token from register, login or refresh. `citizenship` and
         `wallet` are null until those onboarding steps are done.
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       responses:
         "200":
           description: The current user
@@ -155,7 +195,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Me"
         "401":
-          description: Missing, invalid or expired session cookie
+          description: Missing, invalid or expired access token
           content:
             application/json:
               schema:
@@ -166,12 +206,12 @@ paths:
       tags: [Me]
       summary: Set the logged-in user's citizenship and/or passcode
       description: >
-        Needs the `session` cookie. Send at least one field. `citizenship` must be
+        Needs an access token. Send at least one field. `citizenship` must be
         one of the codes in the frontend's country list (ISO 3166-1 alpha-2,
         e.g. `GB` for the United Kingdom, not `UK`). `passcode` needs a wallet
         first and can only be set once; it is stored as a bcrypt hash.
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -212,7 +252,7 @@ paths:
                   value:
                     error: Nothing to update
         "401":
-          description: Missing, invalid or expired session cookie
+          description: Missing, invalid or expired access token
           content:
             application/json:
               schema:
@@ -238,11 +278,11 @@ paths:
       tags: [Me]
       summary: Create the logged-in user's wallet
       description: >
-        Needs the `session` cookie and citizenship to be set first. Creates a
+        Needs an access token and citizenship to be set first. Creates a
         placeholder wallet (random Solana-looking address, no private key).
         Safe to call again: returns the existing wallet with `200`.
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       responses:
         "201":
           description: Wallet created
@@ -257,7 +297,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/WalletResponse"
         "401":
-          description: Missing, invalid or expired session cookie
+          description: Missing, invalid or expired access token
           content:
             application/json:
               schema:
@@ -275,10 +315,10 @@ paths:
 
 components:
   securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: session
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
   schemas:
     User:

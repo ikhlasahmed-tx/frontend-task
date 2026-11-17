@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
 import { useLocalePath } from "@/i18n/useLocalePath";
+import { setAccessToken } from "@/lib/api";
 import {
   MIN_PASSWORD_LENGTH,
   validateLogin,
@@ -57,6 +58,7 @@ export function LoginForm() {
         body: JSON.stringify(values),
       });
       if (res.ok) {
+        setAccessToken((await res.json()).accessToken);
         // Stays pending while the next page loads, so the button can't be pressed twice.
         router.push(path("/"));
         return;

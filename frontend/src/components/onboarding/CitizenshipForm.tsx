@@ -7,6 +7,7 @@ import { CountrySelect } from "@/components/onboarding/CountrySelect";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useTranslation } from "react-i18next";
 import { useLocalePath } from "@/i18n/useLocalePath";
+import { apiFetch } from "@/lib/api";
 
 export function CitizenshipForm() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export function CitizenshipForm() {
     setError("");
     setPending(true);
     try {
-      const res = await fetch("/api/me", {
+      const res = await apiFetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ citizenship }),

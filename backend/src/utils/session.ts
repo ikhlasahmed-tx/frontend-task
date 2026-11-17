@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
 import type { Response } from "express";
+import { REFRESH_TOKEN_TTL_MS } from "./tokens";
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+export const REFRESH_COOKIE = "refresh_token";
 
 const cookieOptions = () => ({
   httpOnly: true,
@@ -9,11 +9,10 @@ const cookieOptions = () => ({
   secure: process.env.NODE_ENV === "production",
 });
 
-export function setSessionCookie(res: Response, userId: string) {
-  const token = jwt.sign({ sub: userId }, process.env.JWT_SECRET!, { expiresIn: "7d" });
-  res.cookie("session", token, { ...cookieOptions(), maxAge: SEVEN_DAYS_MS });
+export function setRefreshCookie(res: Response, refreshToken: string) {
+  res.cookie(REFRESH_COOKIE, refreshToken, { ...cookieOptions(), maxAge: REFRESH_TOKEN_TTL_MS });
 }
 
-export function clearSessionCookie(res: Response) {
-  res.clearCookie("session", cookieOptions());
+export function clearRefreshCookie(res: Response) {
+  res.clearCookie(REFRESH_COOKIE, cookieOptions());
 }
